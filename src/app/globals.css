@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #f6f1e8;
+  --bg-dark: #171717;
+  --accent-blue: #87ceeb;
+  --accent-pink: #e7a1b0;
+  --accent-yellow: #f4c542;
+  --accent-green: #dff5d0;
+  --border-color: #171717;
+  --text-primary: #171717;
+  --text-white: #ffffff;
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-dark: var(--bg-dark);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-green: var(--accent-green);
+  --color-border: var(--border-color);
+  --color-text-primary: var(--text-primary);
+  --color-text-white: var(--text-white);
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Global Reset */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Neo-Brutalism Utilities */
+.neo-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #171717;
+}
+.neo-shadow-md {
+  box-shadow: 3px 3px 0px 0px #171717;
+}
+.neo-shadow-lg {
+  box-shadow: 4px 4px 0px 0px #171717;
+}
+.neo-shadow-xl {
+  box-shadow: 6px 6px 0px 0px #171717;
+}
+
+.neo-border {
+  border: 2px solid #171717;
+}
+
+/* Button press effect */
+.neo-press {
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+.neo-press:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px #171717 !important;
+}
+
+/* Tracking utilities */
+.tracking-neo {
+  letter-spacing: 0.06em;
+}
+.tracking-neo-wide {
+  letter-spacing: 0.08em;
+}
+.tracking-neo-wider {
+  letter-spacing: 0.1em;
+}
+.tracking-neo-widest {
+  letter-spacing: 0.12em;
+}
+
+/* Page transitions */
+.page-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes progressPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes flashCapture {
+  0% { opacity: 0; }
+  20% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-progress-pulse {
+  animation: progressPulse 1.5s ease-in-out infinite;
+}
+
+.animate-flash {
+  animation: flashCapture 0.4s ease-out forwards;
+}
+
+/* Glow effect for pose overlay */
+.pose-glow {
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.6))
+          drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+}
+
+/* Scrollbar hide */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area for mobile */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
