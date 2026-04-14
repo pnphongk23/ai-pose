@@ -6,7 +6,7 @@
 
 **Architecture:** Monorepo approach adding composeApp/ (Compose UI), shared/ (business logic), and iosApp/ (native shell) to existing Next.js repo. Uses expect/actual pattern for iOS-specific implementations.
 
-**Tech Stack:** Kotlin 2.0.0, Compose Multiplatform 1.6.0, Voyager 1.1.0-beta02, SQLDelight 2.0.0, Koin 4.1.0, CocoaPods
+**Tech Stack:** Kotlin 2.0.0, Compose Multiplatform 1.6.x, Voyager 1.1.0-beta02, SQLDelight 2.0.0, Koin 4.0.0 (bản 4.1.x yêu cầu Kotlin 2.1+), CocoaPods
 
 ---
 
@@ -77,7 +77,7 @@ ai-pose/
 - Create: `gradle.properties`
 - Download: `gradlew`, `gradlew.bat`, `gradle/wrapper/gradle-wrapper.jar`
 
-- [ ] **Step 1.1: Create gradle wrapper properties**
+- [x] **Step 1.1: Create gradle wrapper properties**
 
 ```properties
 # gradle/wrapper/gradle-wrapper.properties
@@ -90,7 +90,7 @@ zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists
 ```
 
-- [ ] **Step 1.2: Create gradle.properties**
+- [x] **Step 1.2: Create gradle.properties**
 
 ```properties
 # gradle.properties
@@ -99,9 +99,11 @@ kotlin.code.style=official
 kotlin.native.cacheKind.iosX64=none
 kotlin.native.cacheKind.iosArm64=none
 kotlin.native.cacheKind.iosSimulatorArm64=none
+compose.kotlin.native.manageCacheKind=false
+kotlin.apple.xcodeCompatibility.nowarn=true
 ```
 
-- [ ] **Step 1.3: Download Gradle wrapper**
+- [x] **Step 1.3: Download Gradle wrapper**
 
 Run:
 ```bash
@@ -112,7 +114,7 @@ gradle wrapper --gradle-version 8.5
 
 Expected: gradlew, gradlew.bat, and gradle/wrapper/gradle-wrapper.jar exist
 
-- [ ] **Step 1.4: Verify wrapper works**
+- [x] **Step 1.4: Verify wrapper works**
 
 Run:
 ```bash
@@ -135,7 +137,7 @@ git commit -m "chore: add Gradle 8.5 wrapper"
 **Files:**
 - Create: `gradle/libs.versions.toml`
 
-- [ ] **Step 2.1: Create version catalog**
+- [x] **Step 2.1: Create version catalog**
 
 ```toml
 # gradle/libs.versions.toml
@@ -188,7 +190,7 @@ git commit -m "chore: add version catalog with KMP dependencies"
 - Create: `settings.gradle.kts`
 - Create: `build.gradle.kts`
 
-- [ ] **Step 3.1: Create settings.gradle.kts**
+- [x] **Step 3.1: Create settings.gradle.kts**
 
 ```kotlin
 // settings.gradle.kts
@@ -213,7 +215,7 @@ dependencyResolutionManagement {
 }
 ```
 
-- [ ] **Step 3.2: Create root build.gradle.kts**
+- [x] **Step 3.2: Create root build.gradle.kts**
 
 ```kotlin
 // build.gradle.kts
@@ -225,7 +227,7 @@ plugins {
 }
 ```
 
-- [ ] **Step 3.3: Verify Gradle sync**
+- [x] **Step 3.3: Verify Gradle sync**
 
 Run:
 ```bash
@@ -248,7 +250,7 @@ git commit -m "chore: add root Gradle configuration"
 **Files:**
 - Create: `shared/build.gradle.kts`
 
-- [ ] **Step 4.1: Create shared directory structure**
+- [x] **Step 4.1: Create shared directory structure**
 
 ```bash
 mkdir -p shared/src/commonMain/kotlin/com/aipose/data
@@ -256,7 +258,7 @@ mkdir -p shared/src/commonMain/sqldelight/com/aipose
 mkdir -p shared/src/iosMain/kotlin/com/aipose/data
 ```
 
-- [ ] **Step 4.2: Create shared/build.gradle.kts**
+- [x] **Step 4.2: Create shared/build.gradle.kts**
 
 ```kotlin
 // shared/build.gradle.kts
@@ -291,7 +293,7 @@ sqldelight {
 }
 ```
 
-- [ ] **Step 4.3: Verify module recognized**
+- [x] **Step 4.3: Verify module recognized**
 
 Run:
 ```bash
@@ -311,10 +313,12 @@ git commit -m "chore: add shared module with SQLDelight config"
 
 ## Task 5: ComposeApp Module Setup
 
+> **Note:** `compose.kotlin.native.manageCacheKind=false` trong `gradle.properties` (Task 1.2) để Compose plugin không ghi đè `kotlin.native.cacheKind.*`. Với Koin Compose trên iOS, thêm `co.touchlab:stately-common` (xem `libs.stately.common` trong version catalog) để KLIB resolver không lỗi `stately-common`.
+
 **Files:**
 - Create: `composeApp/build.gradle.kts`
 
-- [ ] **Step 5.1: Create composeApp directory structure**
+- [x] **Step 5.1: Create composeApp directory structure**
 
 ```bash
 mkdir -p composeApp/src/commonMain/kotlin/com/aipose/ui/theme
@@ -323,7 +327,7 @@ mkdir -p composeApp/src/commonMain/kotlin/com/aipose/navigation
 mkdir -p composeApp/src/iosMain/kotlin/com/aipose
 ```
 
-- [ ] **Step 5.2: Create composeApp/build.gradle.kts**
+- [x] **Step 5.2: Create composeApp/build.gradle.kts**
 
 ```kotlin
 // composeApp/build.gradle.kts
@@ -362,7 +366,7 @@ kotlin {
 }
 ```
 
-- [ ] **Step 5.3: Verify Gradle sync**
+- [x] **Step 5.3: Verify Gradle sync**
 
 Run:
 ```bash
@@ -385,7 +389,7 @@ git commit -m "chore: add composeApp module with Compose Multiplatform"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Color.kt`
 
-- [ ] **Step 6.1: Create Color.kt**
+- [x] **Step 6.1: Create Color.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Color.kt
@@ -419,7 +423,7 @@ object AiPoseColors {
 }
 ```
 
-- [ ] **Step 6.2: Verify compilation**
+- [x] **Step 6.2: Verify compilation**
 
 Run:
 ```bash
@@ -442,7 +446,7 @@ git commit -m "feat: add AiPoseColors theme palette"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Typography.kt`
 
-- [ ] **Step 7.1: Create Typography.kt**
+- [x] **Step 7.1: Create Typography.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Typography.kt
@@ -507,7 +511,7 @@ git commit -m "feat: add AiPoseTypography text styles"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Spacing.kt`
 
-- [ ] **Step 8.1: Create Spacing.kt**
+- [x] **Step 8.1: Create Spacing.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Spacing.kt
@@ -546,7 +550,7 @@ git commit -m "feat: add Spacing and CornerRadius design tokens"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Theme.kt`
 
-- [ ] **Step 9.1: Create Theme.kt**
+- [x] **Step 9.1: Create Theme.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/theme/Theme.kt
@@ -577,7 +581,7 @@ fun AiPoseTheme(content: @Composable () -> Unit) {
 }
 ```
 
-- [ ] **Step 9.2: Verify theme compilation**
+- [x] **Step 9.2: Verify theme compilation**
 
 Run:
 ```bash
@@ -600,7 +604,7 @@ git commit -m "feat: add AiPoseTheme MaterialTheme wrapper"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/components/Modifiers.kt`
 
-- [ ] **Step 10.1: Create Modifiers.kt**
+- [x] **Step 10.1: Create Modifiers.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/components/Modifiers.kt
@@ -679,7 +683,7 @@ git commit -m "feat: add neo-brutalism modifier utilities"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/components/PrimaryButton.kt`
 
-- [ ] **Step 11.1: Create PrimaryButton.kt**
+- [x] **Step 11.1: Create PrimaryButton.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/components/PrimaryButton.kt
@@ -743,7 +747,7 @@ git commit -m "feat: add PrimaryButton component"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/ui/components/SecondaryButton.kt`
 
-- [ ] **Step 12.1: Create SecondaryButton.kt**
+- [x] **Step 12.1: Create SecondaryButton.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/ui/components/SecondaryButton.kt
@@ -791,7 +795,7 @@ fun SecondaryButton(
 }
 ```
 
-- [ ] **Step 12.2: Verify theme components compile**
+- [x] **Step 12.2: Verify theme components compile**
 
 Run:
 ```bash
@@ -814,7 +818,7 @@ git commit -m "feat: add SecondaryButton component"
 **Files:**
 - Create: `shared/src/commonMain/sqldelight/com/aipose/Pose.sq`
 
-- [ ] **Step 13.1: Create Pose.sq**
+- [x] **Step 13.1: Create Pose.sq**
 
 ```sql
 -- shared/src/commonMain/sqldelight/com/aipose/Pose.sq
@@ -866,7 +870,7 @@ git commit -m "feat: add Pose SQLDelight schema"
 **Files:**
 - Create: `shared/src/commonMain/sqldelight/com/aipose/Photo.sq`
 
-- [ ] **Step 14.1: Create Photo.sq**
+- [x] **Step 14.1: Create Photo.sq**
 
 ```sql
 -- shared/src/commonMain/sqldelight/com/aipose/Photo.sq
@@ -907,7 +911,7 @@ toggleFavorite:
 UPDATE Photo SET isFavorite = CASE WHEN isFavorite = 0 THEN 1 ELSE 0 END WHERE id = ?;
 ```
 
-- [ ] **Step 14.2: Verify SQLDelight generates code**
+- [x] **Step 14.2: Verify SQLDelight generates code**
 
 Run:
 ```bash
@@ -930,7 +934,7 @@ git commit -m "feat: add Photo SQLDelight schema"
 **Files:**
 - Create: `shared/src/commonMain/kotlin/com/aipose/data/DatabaseDriverFactory.kt`
 
-- [ ] **Step 15.1: Create expect declaration**
+- [x] **Step 15.1: Create expect declaration**
 
 ```kotlin
 // shared/src/commonMain/kotlin/com/aipose/data/DatabaseDriverFactory.kt
@@ -957,7 +961,7 @@ git commit -m "feat: add DatabaseDriverFactory expect declaration"
 **Files:**
 - Create: `shared/src/iosMain/kotlin/com/aipose/data/DatabaseDriverFactory.kt`
 
-- [ ] **Step 16.1: Create iOS actual implementation**
+- [x] **Step 16.1: Create iOS actual implementation**
 
 ```kotlin
 // shared/src/iosMain/kotlin/com/aipose/data/DatabaseDriverFactory.kt
@@ -973,7 +977,7 @@ actual class DatabaseDriverFactory {
 }
 ```
 
-- [ ] **Step 16.2: Verify shared module compiles**
+- [x] **Step 16.2: Verify shared module compiles**
 
 Run:
 ```bash
@@ -996,7 +1000,7 @@ git commit -m "feat: add DatabaseDriverFactory iOS implementation"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/navigation/Navigation.kt`
 
-- [ ] **Step 17.1: Create Navigation.kt**
+- [x] **Step 17.1: Create Navigation.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/navigation/Navigation.kt
@@ -1182,7 +1186,7 @@ git commit -m "feat: add Voyager tab navigation with 3 tabs"
 **Files:**
 - Create: `composeApp/src/commonMain/kotlin/com/aipose/App.kt`
 
-- [ ] **Step 18.1: Create App.kt**
+- [x] **Step 18.1: Create App.kt**
 
 ```kotlin
 // composeApp/src/commonMain/kotlin/com/aipose/App.kt
@@ -1229,7 +1233,7 @@ git commit -m "feat: add App composable with TabNavigator"
 **Files:**
 - Create: `composeApp/src/iosMain/kotlin/com/aipose/MainViewController.kt`
 
-- [ ] **Step 19.1: Create MainViewController.kt**
+- [x] **Step 19.1: Create MainViewController.kt**
 
 ```kotlin
 // composeApp/src/iosMain/kotlin/com/aipose/MainViewController.kt
@@ -1240,7 +1244,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 fun MainViewController() = ComposeUIViewController { App() }
 ```
 
-- [ ] **Step 19.2: Verify composeApp compiles**
+- [x] **Step 19.2: Verify composeApp compiles**
 
 Run:
 ```bash
@@ -1263,7 +1267,7 @@ git commit -m "feat: add iOS MainViewController entry point"
 **Files:**
 - Create: `iosApp/Podfile`
 
-- [ ] **Step 20.1: Create iosApp directory and Podfile**
+- [x] **Step 20.1: Create iosApp directory and Podfile**
 
 ```bash
 mkdir -p iosApp/iosApp
@@ -1295,7 +1299,7 @@ git commit -m "chore: add iOS Podfile for CocoaPods integration"
 - Create: `iosApp/iosApp/ContentView.swift`
 - Create: `iosApp/iosApp/Info.plist`
 
-- [ ] **Step 21.1: Create AppDelegate.swift**
+- [x] **Step 21.1: Create AppDelegate.swift**
 
 ```swift
 // iosApp/iosApp/AppDelegate.swift
@@ -1319,7 +1323,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 ```
 
-- [ ] **Step 21.2: Create ContentView.swift**
+- [x] **Step 21.2: Create ContentView.swift**
 
 ```swift
 // iosApp/iosApp/ContentView.swift
@@ -1342,7 +1346,7 @@ struct ComposeView: UIViewControllerRepresentable {
 }
 ```
 
-- [ ] **Step 21.3: Create Info.plist**
+- [x] **Step 21.3: Create Info.plist**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1407,7 +1411,7 @@ git commit -m "feat: add iOS app Swift files"
 **Files:**
 - None (build verification)
 
-- [ ] **Step 22.1: Build debug framework**
+- [x] **Step 22.1: Build debug framework**
 
 Run:
 ```bash
@@ -1416,7 +1420,7 @@ Run:
 
 Expected: BUILD SUCCESSFUL, framework in composeApp/build/bin/iosSimulatorArm64/debugFramework/
 
-- [ ] **Step 22.2: Verify framework exists**
+- [x] **Step 22.2: Verify framework exists**
 
 Run:
 ```bash
@@ -1439,7 +1443,7 @@ git status
 **Files:**
 - Create: `iosApp/iosApp.xcodeproj/project.pbxproj`
 
-- [ ] **Step 23.1: Create Xcode project using xcodegen or manual setup**
+- [x] **Step 23.1: Create Xcode project using xcodegen or manual setup**
 
 Option A - Using Xcode (recommended):
 1. Open Xcode
@@ -1478,7 +1482,7 @@ EOF
 cd iosApp && xcodegen generate
 ```
 
-- [ ] **Step 23.2: Install CocoaPods dependencies**
+- [x] **Step 23.2: Install CocoaPods dependencies**
 
 Run:
 ```bash
@@ -1487,7 +1491,7 @@ cd iosApp && pod install
 
 Expected: Pod installation complete, iosApp.xcworkspace created
 
-- [ ] **Step 23.3: Commit Xcode project**
+- [ ] **Step 23.3: Commit Xcode project** (pending user request)
 
 ```bash
 git add iosApp/
@@ -1501,7 +1505,7 @@ git commit -m "chore: add Xcode project with CocoaPods"
 **Files:**
 - None (verification only)
 
-- [ ] **Step 24.1: Clean build**
+- [x] **Step 24.1: Clean build**
 
 Run:
 ```bash
@@ -1512,7 +1516,7 @@ Run:
 
 Expected: All BUILD SUCCESSFUL
 
-- [ ] **Step 24.2: Verify Xcode build**
+- [x] **Step 24.2: Verify Xcode build**
 
 Run:
 ```bash
@@ -1531,7 +1535,7 @@ Expected: ** BUILD SUCCEEDED **
 5. Tap each tab to verify navigation works
 6. Verify pink theme color on selected tab
 
-- [ ] **Step 24.4: Update .gitignore for KMP**
+- [x] **Step 24.4: Update .gitignore for KMP**
 
 ```bash
 cat >> .gitignore << 'EOF'
@@ -1554,7 +1558,7 @@ DerivedData/
 EOF
 ```
 
-- [ ] **Step 24.5: Final commit**
+- [ ] **Step 24.5: Final commit** (pending user request)
 
 ```bash
 git add .gitignore

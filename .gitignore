@@ -19,6 +19,7 @@
 
 # production
 /build
+/.gradle
 
 # misc
 .DS_Store
@@ -39,3 +40,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Kotlin Multiplatform / Gradle
+composeApp/build/
+shared/build/
+*.iml
+.idea/
+local.properties
+
+# iOS / CocoaPods / Xcode
+iosApp/Pods/
+iosApp/*.xcworkspace/xcuserdata/
+iosApp/*.xcodeproj/xcuserdata/
+*.xcuserstate
+DerivedData/

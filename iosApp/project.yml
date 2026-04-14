@@ -1,0 +1,14 @@
+name: iosApp
+options:
+  bundleIdPrefix: com.aipose
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources:
+      - iosApp
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.aipose.app
+      INFOPLIST_FILE: iosApp/Info.plist
