@@ -1,0 +1,476 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║         AI POSE - KMP COMPOSE THEME DESIGN EXPLORATION SUMMARY                 ║
+║                          Date: 2026-04-14                                      ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. DESIGN REFERENCES FOUND ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Subframe Project Located
+   • Project ID: 6f0b27e61709
+   • Name: "Phạm Như Phong's Project"
+   • Team: "Phạm Như Phong's Team"
+
+✅ Design Pages Available
+   • Pose Mirror Studio (AI Pose design) - MAIN REFERENCE
+   • Design System Foundation
+   • Component Library (100+ components)
+
+✅ Web App Theme Files Found
+   • File: src/app/globals.css
+   • Type: Neo-Brutalism with hard shadows
+   • Reference: Subframe Tailwind theme exported
+
+✅ Design Spec Located
+   • File: docs/superpowers/specs/2026-04-14-kmp-compose-migration-design.md
+   • Status: Draft, comprehensive architecture plan
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. COLOR SCHEME FOR COMPOSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PRIMARY PALETTE
+────────────────────────────────────────────────────────────────────────────────
+
+Background Colors:
+  • Primary Background:   #F6F1E8  (Light beige/tan)
+  • Surface/Card:         #FAF8F3  (Slightly darker off-white)
+  • Dark Elements:        #171717  (Near black)
+  • White/Light Text:     #FFFFFF  (Pure white)
+
+Text & Foreground:
+  • Primary Text:         #171717  (Dark gray/black)
+  • Secondary Text:       #737373  (Medium gray)
+  • Borders:              #171717  (Dark, 2px solid)
+
+Brand & Accents:
+  • Primary Brand:        #E7A1B0  (Soft pink) ← MAIN BRAND COLOR
+  • Secondary Accent:     #87CEEB  (Sky blue)
+  • Tertiary Accent:      #F4C542  (Warm amber)
+  • Success State:        #DFF5D0  (Soft green)
+
+Semantic Colors (from Subframe):
+  • Error-600:            #D42828  (Red)
+  • Warning-500:          #E6AD18  (Amber)
+  • Success-500:          #3DAE28  (Green)
+
+IMPLEMENTATION FOR KOTLIN
+────────────────────────────────────────────────────────────────────────────────
+
+object AppColors {
+    // Backgrounds
+    val bgPrimary = Color(0xFFF6F1E8)
+    val bgSecondary = Color(0xFFFAF8F3)
+    val bgDark = Color(0xFF171717)
+    
+    // Text & Borders
+    val textPrimary = Color(0xFF171717)
+    val textSecondary = Color(0xFF737373)
+    val borderDefault = Color(0xFF171717)
+    
+    // Brand & Accents
+    val brandPink = Color(0xFFE7A1B0)
+    val accentBlue = Color(0xFF87CEEB)
+    val accentYellow = Color(0xFFF4C542)
+    val successGreen = Color(0xFFDFF5D0)
+    
+    // Semantic
+    val errorRed = Color(0xFFD42828)
+    val warningAmber = Color(0xFFE6AD18)
+    val successGreen = Color(0xFF3DAE28)
+}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. TYPOGRAPHY SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Font Family: Inter (all weights 400-900)
+
+Typography Tokens:
+╔═════════════════╦════════════╦════════════╦════════════════╗
+║ Type            ║ Size       ║ Weight     ║ Line Height    ║
+╠═════════════════╬════════════╬════════════╬════════════════╣
+║ Display         ║ 32px       ║ 800        ║ 38px (header)  ║
+║ ScreenTitle     ║ 24px       ║ 700        ║ 30px (nav)     ║
+║ Heading 3       ║ 18px       ║ 700        ║ 24px           ║
+║ Body            ║ 14px       ║ 400        ║ 20px (default) ║
+║ Body Bold       ║ 14px       ║ 500        ║ 20px (accent)  ║
+║ Caption         ║ 11px       ║ 500        ║ 16px (labels)  ║
+║ Caption Bold    ║ 11px       ║ 700        ║ 16px (badges)  ║
+╚═════════════════╩════════════╩════════════╩════════════════╝
+
+Letter Spacing (Tracked for UI):
+  • Wide tracking:        0.08em  (UI labels, section titles)
+  • Normal tracking:      0em     (body copy)
+
+Compose TextStyle Examples:
+────────────────────────────────────────────────────────────────────────────────
+val typography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = FontFamily.Default,  // Inter
+        fontSize = 32.sp,
+        fontWeight = FontWeight.ExtraBold,
+        lineHeight = 38.sp,
+        letterSpacing = 0.em
+    ),
+    headlineSmall = TextStyle(
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        lineHeight = 30.sp,
+        letterSpacing = 0.08.em
+    ),
+    bodyMedium = TextStyle(
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Normal,
+        lineHeight = 20.sp,
+        letterSpacing = 0.em
+    ),
+    labelSmall = TextStyle(
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Medium,
+        lineHeight = 16.sp,
+        letterSpacing = 0.08.em
+    )
+)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. SPACING & DIMENSIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Spacing Scale:
+────────────────────────────────────────────────────────────────────────────────
+xs:    4dp   (minimal spacing)
+sm:    8dp   (small gap)
+md:   12dp   (medium gap)
+lg:   16dp   (standard padding)
+xl:   24dp   (large gap)
+xxl:  32dp   (extra large)
+
+Border Radius:
+────────────────────────────────────────────────────────────────────────────────
+sm:   8px    (mild rounding)
+md:  12px    (standard rounding)
+lg:  16px    (large rounding)
+full: 9999px (perfect circle)
+
+Touch Targets (iOS):
+────────────────────────────────────────────────────────────────────────────────
+• Minimum: 44x44dp (standard iOS)
+• Buttons: 48x48dp (recommended for icon buttons)
+• Interactive elements: Padding of 8-12dp
+
+Compose Spacing Object:
+────────────────────────────────────────────────────────────────────────────────
+object AppSpacing {
+    val xs = 4.dp
+    val sm = 8.dp
+    val md = 12.dp
+    val lg = 16.dp
+    val xl = 24.dp
+    val xxl = 32.dp
+}
+
+object AppShapes {
+    val small = RoundedCornerShape(8.dp)
+    val medium = RoundedCornerShape(12.dp)
+    val large = RoundedCornerShape(16.dp)
+    val full = RoundedCornerShape(9999.dp)
+}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. NEO-BRUTALISM COMPONENT PATTERNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Design Style: Hard shadows, stark borders, bold typography
+
+Core Modifiers:
+────────────────────────────────────────────────────────────────────────────────
+
+// Ghost Border - 2px dark border, no fill
+fun Modifier.ghostBorder() = this
+    .border(2.dp, AppColors.borderDefault, RoundedCornerShape(8.dp))
+
+// Card Chrome - Neo-brutalism shadow effect (offset, no blur)
+fun Modifier.cardChrome() = this
+    .shadow(
+        elevation = 0.dp,
+        shape = RoundedCornerShape(8.dp),
+        clip = false
+    )
+    .drawBehind {
+        drawRect(
+            color = AppColors.bgDark,
+            size = Size(size.width + 4.dp.toPx(), size.height + 4.dp.toPx()),
+            topLeft = Offset(4.dp.toPx(), 4.dp.toPx())
+        )
+    }
+
+// Badge Chrome - Smaller shadow (2px offset)
+fun Modifier.badgeChrome() = this
+    .drawBehind {
+        drawRect(
+            color = AppColors.bgDark.copy(alpha = 0.3f),
+            size = Size(size.width + 2.dp.toPx(), size.height + 2.dp.toPx()),
+            topLeft = Offset(2.dp.toPx(), 2.dp.toPx())
+        )
+    }
+
+Component Styles:
+────────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun PrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .height(48.dp)
+            .cardChrome(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AppColors.brandPink
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            text,
+            style = typography.labelSmall,
+            color = AppColors.bgPrimary
+        )
+    }
+}
+
+@Composable
+fun SecondaryButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .height(48.dp)
+            .ghostBorder(),
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = AppColors.textPrimary
+        ),
+        border = BorderStroke(2.dp, AppColors.borderDefault),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Text(
+            text,
+            style = typography.labelSmall
+        )
+    }
+}
+
+Press Effect Animation:
+────────────────────────────────────────────────────────────────────────────────
+Modifier.clickable {
+    // Shadow collapses on press (4px → 0px)
+    // Transform translate(2px, 2px)
+}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. ANIMATION KEYFRAMES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Screen Transitions:
+  • slideUp: translateY(20px → 0), opacity(0 → 1), duration: 300ms
+
+Loading States:
+  • progressPulse: opacity(1 → 0.7 → 1), infinite, 1.5s loop
+  • shimmer: backgroundPosition(left → right), 1s loop
+
+Capture Feedback:
+  • flashCapture: opacity(0 → 0.8 → 0), duration: 400ms
+
+Compose Implementations:
+────────────────────────────────────────────────────────────────────────────────
+val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+val alpha by infiniteTransition.animateFloat(
+    initialValue = 1f,
+    targetValue = 0.7f,
+    animationSpec = infiniteRepeatable(
+        animation = tween(1500, easing = EaseInOutCubic),
+        repeatMode = RepeatMode.Reverse
+    ),
+    label = "pulse"
+)
+
+AnimatedVisibility(
+    visible = isCapturing,
+    enter = fadeIn() + scaleIn(),
+    exit = fadeOut() + scaleOut()
+) {
+    Box(modifier = Modifier
+        .alpha(alpha)
+        .background(Color.White)
+    )
+}
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. COMPONENT LIBRARY PATTERNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Shared Components (per spec Phase 1):
+────────────────────────────────────────────────────────────────────────────────
+
+Badge Composable
+  • Types: MINE (pink), HOT (red), NEW (yellow), status
+  • Size: Small, compact
+  • Tracking: 0.08em letter-spacing
+
+TabSwitcher
+  • States: MY POSES / COMMUNITY
+  • Active indicator: Underline or background color
+  • Smooth transition
+
+NavButton
+  • Icon only
+  • Size: 44x44dp minimum
+  • Press effect: Scale down to shadow
+
+PoseCard
+  • Layout: Thumbnail + metadata
+  • Thumbnail: AsyncImage (Coil)
+  • Title: UPPERCASE, Bold
+  • Badge overlay
+  • 2-column grid layout
+
+PhotoCard (Gallery)
+  • Thumbnail with optional pose badge
+  • Favorite indicator (heart icon)
+  • Date grouping support
+  • Grid or list mode
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. COMPOSE MULTIPLATFORM SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Theme Provider Structure (commonMain):
+────────────────────────────────────────────────────────────────────────────────
+composeApp/commonMain/kotlin/
+├── App.kt
+└── ui/
+    ├── theme/
+    │   ├── Theme.kt           (Main theme composable)
+    │   ├── Colors.kt          (Color definitions)
+    │   ├── Typography.kt      (TextStyle definitions)
+    │   ├── Shapes.kt          (RoundedCornerShape definitions)
+    │   └── Modifiers.kt       (Extension functions)
+    └── components/
+        ├── Button.kt          (Primary, Secondary)
+        ├── Badge.kt
+        ├── TabSwitcher.kt
+        └── NavButton.kt
+
+Theme.kt Structure:
+────────────────────────────────────────────────────────────────────────────────
+@Composable
+fun AppTheme(
+    content: @Composable () -> Unit
+) {
+    val colorScheme = darkColorScheme(
+        primary = AppColors.brandPink,
+        secondary = AppColors.accentBlue,
+        tertiary = AppColors.accentYellow,
+        background = AppColors.bgPrimary,
+        surface = AppColors.bgSecondary,
+        onBackground = AppColors.textPrimary,
+        onSurface = AppColors.textPrimary
+    )
+    
+    CompositionLocalProvider(
+        LocalSpacing provides AppSpacing,
+        LocalShapes provides AppShapes,
+        LocalColors provides AppColors
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = typography,
+            content = content
+        )
+    }
+}
+
+// Access theme in components
+val colors = LocalColors.current
+val spacing = LocalSpacing.current
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. QUICK REFERENCE - DESIGN TOKENS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Colors:
+  ┌─ Backgrounds
+  │  ├─ Primary:   #F6F1E8  ← Most used
+  │  ├─ Surface:   #FAF8F3
+  │  └─ Dark:      #171717
+  ├─ Text
+  │  ├─ Primary:   #171717
+  │  └─ Secondary: #737373
+  ├─ Brand
+  │  ├─ Pink:      #E7A1B0  ← MAIN
+  │  ├─ Blue:      #87CEEB
+  │  └─ Yellow:    #F4C542
+  └─ Semantic
+     ├─ Success:   #DFF5D0
+     ├─ Error:     #D42828
+     └─ Warning:   #E6AD18
+
+Typography:
+  ┌─ Display:      32px, 800w, 38lh
+  ├─ ScreenTitle:  24px, 700w, 30lh  ← Screen headers
+  ├─ Body:         14px, 400w, 20lh  ← Main content
+  └─ Caption:      11px, 500w, 16lh  ← Labels
+
+Spacing:
+  ┌─ 4dp (xs)  → minimal
+  ├─ 8dp (sm)  → small
+  ├─12dp (md)  → medium
+  ├─16dp (lg)  → standard  ← Most used
+  ├─24dp (xl)  → large
+  └─32dp (xxl) → extra large
+
+Borders:
+  ┌─ Width:  2px (solid)
+  ├─ Color:  #171717 (dark)
+  └─ Radius: 8-12px typical
+
+Shadows:
+  └─ Neo-brutalism: 4px offset, no blur, dark color
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. NEXT STEPS FOR PHASE 1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+☐ Initialize KMP project structure
+☐ Create Theme.kt with ColorScheme, Typography, Shapes
+☐ Implement Button composables (Primary, Secondary)
+☐ Create Modifier extension functions (ghostBorder, cardChrome, badgeChrome)
+☐ Setup String resources (EN/VI)
+☐ Create Badge, TabSwitcher, NavButton components
+☐ Implement navigation structure (Voyager)
+☐ SQLDelight setup (Pose.sq, Photo.sq)
+☐ Verify build on iOS simulator
+
+Expected Theme Deliverables:
+  • composeApp/commonMain/kotlin/ui/theme/Theme.kt
+  • composeApp/commonMain/kotlin/ui/theme/Colors.kt
+  • composeApp/commonMain/kotlin/ui/theme/Typography.kt
+  • composeApp/commonMain/kotlin/ui/components/Button.kt
+  • composeApp/commonMain/kotlin/ui/components/Badge.kt
+
