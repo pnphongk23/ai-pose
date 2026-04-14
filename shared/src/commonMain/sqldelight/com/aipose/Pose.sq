@@ -1,0 +1,33 @@
+-- shared/src/commonMain/sqldelight/com/aipose/Pose.sq
+CREATE TABLE Pose (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    imagePath TEXT NOT NULL,
+    thumbnailPath TEXT,
+    originalImagePath TEXT,
+    createdAt TEXT NOT NULL,
+    isMine INTEGER NOT NULL DEFAULT 1,
+    likes INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_pose_createdAt ON Pose(createdAt);
+CREATE INDEX idx_pose_isMine ON Pose(isMine);
+
+getAllPoses:
+SELECT * FROM Pose ORDER BY createdAt DESC;
+
+getPoseById:
+SELECT * FROM Pose WHERE id = ?;
+
+getMyPoses:
+SELECT * FROM Pose WHERE isMine = 1 ORDER BY createdAt DESC;
+
+insertPose:
+INSERT INTO Pose(name, imagePath, thumbnailPath, originalImagePath, createdAt, isMine, likes)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deletePose:
+DELETE FROM Pose WHERE id = ?;
+
+updatePose:
+UPDATE Pose SET name = ?, thumbnailPath = ?, likes = ? WHERE id = ?;

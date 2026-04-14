@@ -1,0 +1,36 @@
+-- shared/src/commonMain/sqldelight/com/aipose/Photo.sq
+CREATE TABLE Photo (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    imagePath TEXT NOT NULL,
+    poseId INTEGER,
+    poseName TEXT NOT NULL DEFAULT '',
+    createdAt TEXT NOT NULL,
+    isFavorite INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (poseId) REFERENCES Pose(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_photo_createdAt ON Photo(createdAt);
+CREATE INDEX idx_photo_poseId ON Photo(poseId);
+CREATE INDEX idx_photo_isFavorite ON Photo(isFavorite);
+
+getAllPhotos:
+SELECT * FROM Photo ORDER BY createdAt DESC;
+
+getPhotoById:
+SELECT * FROM Photo WHERE id = ?;
+
+getPhotosByPoseId:
+SELECT * FROM Photo WHERE poseId = ? ORDER BY createdAt DESC;
+
+getFavoritePhotos:
+SELECT * FROM Photo WHERE isFavorite = 1 ORDER BY createdAt DESC;
+
+insertPhoto:
+INSERT INTO Photo(imagePath, poseId, poseName, createdAt, isFavorite)
+VALUES (?, ?, ?, ?, ?);
+
+deletePhoto:
+DELETE FROM Photo WHERE id = ?;
+
+toggleFavorite:
+UPDATE Photo SET isFavorite = CASE WHEN isFavorite = 0 THEN 1 ELSE 0 END WHERE id = ?;
