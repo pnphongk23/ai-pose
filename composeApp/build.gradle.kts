@@ -25,9 +25,6 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.tab.navigator)
-            implementation(libs.voyager.koin)
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
             implementation(project(":shared"))
         }
     }
