@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-13  
 **Status:** Approved  
-**Related Issue:** [#21 - Extract Pose Feature](https://github.com/pnphongk23/ai-pose/issues/21)
+**Related Issue:** [#2Nh1 - Extract Pose Feature](https://github.com/pnphongk23/ai-pose/issues/21)
 
 ---
 

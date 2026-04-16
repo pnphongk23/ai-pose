@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Shield } from 'lucide-react';
 import NavButton from '@/components/NavButton';
 import TabSwitcher from '@/components/TabSwitcher';
 import PoseCard from '@/components/PoseCard';
@@ -84,6 +84,7 @@ export default function PosesPage() {
           POSES
         </h1>
         <div className="flex items-center gap-2">
+          <NavButton icon={Shield} href="/admin/keys" />
           <NavButton icon={Search} onClick={() => {}} />
           <NavButton icon={Plus} bg="bg-accent-yellow" href="/extract" />
         </div>

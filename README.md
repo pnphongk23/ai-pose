@@ -34,3 +34,27 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Admin UI (dev-only)
+
+Đã có giao diện quản trị key tại `http://localhost:3000/admin/keys`.
+
+UI này không lưu secret ở client; Next.js sẽ proxy request sang pose-extract-server bằng biến môi trường server-side.
+
+### Cần thêm env cho Next.js app
+
+```bash
+POSE_EXTRACT_SERVER_URL=http://localhost:3001
+POSE_EXTRACT_ADMIN_SECRET=change-me
+```
+
+### Flow local gợi ý
+
+1. Chạy pose-extract-server (ở `services/pose-extract-server`).
+   - Ví dụ đặt `PORT=3001` cho service để không trùng port Next.js.
+2. Chạy Next.js app.
+3. Vào `/admin/keys` để:
+   - thêm key mới
+   - đổi status key
+   - xóa key
+   - reset daily counters

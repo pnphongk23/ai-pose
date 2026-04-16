@@ -1,0 +1,10 @@
+{
+  "agent": "antigravity",
+  "scope": "project",
+  "packs": [
+    "marketing"
+  ],
+  "outputPath": null,
+  "version": "1.0.0",
+  "updatedAt": "2026-04-14T08:09:09.148Z"
+}
