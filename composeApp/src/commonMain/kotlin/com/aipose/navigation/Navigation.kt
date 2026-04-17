@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.aipose.camera.CameraScreen
 import com.aipose.ui.theme.AiPoseColors
 import com.aipose.ui.theme.AiPoseTypography
 import com.aipose.ui.theme.Spacing
@@ -47,7 +48,7 @@ object CameraTab : Tab {
 
     @Composable
     override fun Content() {
-        PlaceholderScreen("Camera")
+        CameraScreen()
     }
 }
 

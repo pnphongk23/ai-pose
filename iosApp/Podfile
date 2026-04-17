@@ -4,4 +4,27 @@ platform :ios, '15.0'
 target 'iosApp' do
   use_frameworks!
   pod 'composeApp', :path => '../composeApp'
+
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+        flags = config.build_settings['OTHER_LDFLAGS']
+        flags = [flags] unless flags.is_a?(Array)
+        flags << '-lsqlite3' unless flags.include?('-lsqlite3')
+        config.build_settings['OTHER_LDFLAGS'] = flags
+      end
+    end
+
+    installer.aggregate_targets.each do |aggregate_target|
+      aggregate_target.user_project.native_targets.each do |native_target|
+        native_target.build_configurations.each do |config|
+          existing = config.build_settings['OTHER_LDFLAGS'] || '$(inherited)'
+          value = existing.is_a?(Array) ? existing.join(' ') : existing.to_s
+          config.build_settings['OTHER_LDFLAGS'] = "#{value} -lsqlite3" unless value.include?('-lsqlite3')
+        end
+      end
+      aggregate_target.user_project.save
+    end
+  end
 end
