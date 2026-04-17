@@ -1,4 +1,3 @@
-// composeApp/src/commonMain/kotlin/com/aipose/navigation/Navigation.kt
 package com.aipose.navigation
 
 import androidx.compose.foundation.background
@@ -24,9 +23,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
+import com.aipose.Pose
+import com.aipose.ui.screens.poses.PoseDetailScreen
+import com.aipose.ui.screens.poses.PoseDetailViewModel
+import com.aipose.ui.screens.poses.PosesScreen
+import com.aipose.ui.screens.poses.PosesViewModel
 import com.aipose.ui.theme.AiPoseColors
 import com.aipose.ui.theme.AiPoseTypography
 import com.aipose.ui.theme.Spacing
@@ -67,7 +75,7 @@ object PosesTab : Tab {
 
     @Composable
     override fun Content() {
-        PlaceholderScreen("Poses")
+        Navigator(PosesListScreen())
     }
 }
 
@@ -88,6 +96,36 @@ object GalleryTab : Tab {
     @Composable
     override fun Content() {
         PlaceholderScreen("Gallery")
+    }
+}
+
+class PosesListScreen : Screen {
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
+        PosesScreen(
+            viewModel = remember { PosesViewModel() },
+            onPoseClick = { poseId -> navigator.push(PoseDetailVoyagerScreen(poseId)) },
+            onExtractPoseClick = {}
+        )
+    }
+}
+
+class PoseDetailVoyagerScreen(
+    private val poseId: Long
+) : Screen {
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
+        val tabNavigator = LocalTabNavigator.current
+        PoseDetailScreen(
+            poseId = poseId,
+            viewModel = remember { PoseDetailViewModel(poseId) },
+            onUseWithCamera = { _: Pose ->
+                tabNavigator.current = CameraTab
+            },
+            onBack = { navigator.pop() }
+        )
     }
 }
 

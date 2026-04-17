@@ -42,6 +42,7 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.stately.common)
+            implementation(libs.coil.compose)
             implementation(project(":shared"))
         }
     }
