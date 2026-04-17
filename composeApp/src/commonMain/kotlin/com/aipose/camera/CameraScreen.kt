@@ -82,6 +82,7 @@ fun CameraScreen(
     var showCaptureFlash by remember { mutableStateOf(false) }
     var captureInFlight by remember { mutableStateOf(false) }
     var captureStatus by remember { mutableStateOf<String?>(null) }
+    var selectedFlashMode by remember { mutableStateOf(FlashMode.OFF) }
 
     LaunchedEffect(Unit) {
         val latestPath = photoRepository.getLatestPhotoPath()
@@ -185,6 +186,37 @@ fun CameraScreen(
                 onValueChange = { overlayOpacity = it },
                 valueRange = 0f..1f,
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                FlashModeOption(
+                    label = "OFF",
+                    selected = selectedFlashMode == FlashMode.OFF,
+                    onClick = {
+                        selectedFlashMode = FlashMode.OFF
+                        controller.setFlashMode(FlashMode.OFF)
+                    }
+                )
+                FlashModeOption(
+                    label = "AUTO",
+                    selected = selectedFlashMode == FlashMode.AUTO,
+                    onClick = {
+                        selectedFlashMode = FlashMode.AUTO
+                        controller.setFlashMode(FlashMode.AUTO)
+                    }
+                )
+                FlashModeOption(
+                    label = "ON",
+                    selected = selectedFlashMode == FlashMode.ON,
+                    onClick = {
+                        selectedFlashMode = FlashMode.ON
+                        controller.setFlashMode(FlashMode.ON)
+                    }
+                )
+            }
         }
 
         Row(
@@ -260,7 +292,7 @@ fun CameraScreen(
         }
 
         if (permissionState == CameraPermissionState.DENIED || permissionState == CameraPermissionState.RESTRICTED) {
-            PermissionDeniedOverlay()
+            PermissionDeniedOverlay(controller = controller)
         }
     }
 }
@@ -306,7 +338,23 @@ private fun RuleOfThirdsGrid() {
 }
 
 @Composable
-private fun PermissionDeniedOverlay() {
+private fun FlashModeOption(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Button(onClick = onClick) {
+        Text(
+            text = if (selected) "[$label]" else label,
+            style = AiPoseTypography.Caption,
+        )
+    }
+}
+
+@Composable
+private fun PermissionDeniedOverlay(
+    controller: CameraController,
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -320,7 +368,7 @@ private fun PermissionDeniedOverlay() {
                 color = Color.White,
             )
             Spacer(modifier = Modifier.height(Spacing.md))
-            Button(onClick = { }) {
+            Button(onClick = { controller.openAppSettings() }) {
                 Text("Open Settings")
             }
         }

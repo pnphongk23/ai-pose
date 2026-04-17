@@ -32,6 +32,7 @@ expect class CameraController() {
 
     fun switchCamera()
     fun setFlashMode(mode: FlashMode)
+    fun openAppSettings()
 }
 
 @Composable
