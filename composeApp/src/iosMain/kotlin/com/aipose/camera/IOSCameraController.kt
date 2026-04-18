@@ -3,74 +3,35 @@ package com.aipose.camera
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.readBytes
 import platform.AVFoundation.AVCaptureDevice
-import platform.AVFoundation.AVCaptureDeviceInput
-import platform.AVFoundation.AVCaptureDevicePositionBack
-import platform.AVFoundation.AVCaptureDevicePositionFront
-import platform.AVFoundation.AVCaptureDevicePositionUnspecified
-import platform.AVFoundation.AVCaptureDeviceTypeBuiltInWideAngleCamera
-import platform.AVFoundation.AVCaptureFlashModeAuto
-import platform.AVFoundation.AVCaptureFlashModeOff
-import platform.AVFoundation.AVCaptureFlashModeOn
-import platform.AVFoundation.AVCapturePhoto
-import platform.AVFoundation.AVCapturePhotoCaptureDelegateProtocol
-import platform.AVFoundation.AVCapturePhotoOutput
-import platform.AVFoundation.AVCapturePhotoSettings
-import platform.AVFoundation.AVCaptureSession
-import platform.AVFoundation.AVCaptureSessionPresetPhoto
-import platform.AVFoundation.AVMediaTypeVideo
-import platform.AVFoundation.AVVideoCodecKey
-import platform.AVFoundation.AVVideoCodecTypeJPEG
 import platform.AVFoundation.AVAuthorizationStatusAuthorized
 import platform.AVFoundation.AVAuthorizationStatusDenied
 import platform.AVFoundation.AVAuthorizationStatusNotDetermined
 import platform.AVFoundation.AVAuthorizationStatusRestricted
+import platform.AVFoundation.AVMediaTypeVideo
 import platform.AVFoundation.authorizationStatusForMediaType
-import platform.AVFoundation.defaultDeviceWithDeviceType
-import platform.AVFoundation.requestAccessForMediaType
 import platform.Foundation.NSData
-import platform.Foundation.NSError
+import platform.Foundation.NSNotification
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSUUID
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSClassFromString
 import platform.darwin.NSObject
-import platform.objc.sel_registerName
+import platform.darwin.NSObjectProtocol
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
-import platform.darwin.dispatch_queue_create
+import platform.objc.sel_registerName
 
 @OptIn(ExperimentalForeignApi::class)
 internal class IOSCameraController {
-    val session: AVCaptureSession = AVCaptureSession()
-    val photoOutput: AVCapturePhotoOutput = AVCapturePhotoOutput()
-
-    private val sessionQueue = dispatch_queue_create("com.aipose.camera.session", null)
-
-    private var currentInput: AVCaptureDeviceInput? = null
-    private var currentFacing: CameraFacing = CameraFacing.BACK
-    private var currentFlashMode: FlashMode = FlashMode.OFF
+    private val bridgeId: String = NSUUID().UUIDString
+    private val notificationCenter = NSNotificationCenter.defaultCenter
 
     private var pendingCaptureCallback: ((ByteArray) -> Unit)? = null
-    private val captureDelegate = object : NSObject(), AVCapturePhotoCaptureDelegateProtocol {
-        override fun captureOutput(
-            output: AVCapturePhotoOutput,
-            didFinishProcessingPhoto: AVCapturePhoto,
-            error: NSError?
-        ) {
-            val callback = pendingCaptureCallback
-            pendingCaptureCallback = null
+    private var pendingPermissionCallback: ((CameraPermissionState) -> Unit)? = null
+    private var bridgeEventObserver: NSObjectProtocol? = null
 
-            if (callback == null) {
-                return
-            }
-
-            val bytes = if (error != null) {
-                ByteArray(0)
-            } else {
-                val data = didFinishProcessingPhoto.asNSDataViaObjCMessage("fileDataRepresentation")
-                data?.toByteArray() ?: ByteArray(0)
-            }
-
-            dispatch_async(dispatch_get_main_queue()) {
-                callback(bytes)
-            }
-        }
+    init {
+        observeBridgeEvents()
     }
 
     fun permissionState(): CameraPermissionState {
@@ -85,137 +46,138 @@ internal class IOSCameraController {
     }
 
     fun requestPermission(onResult: (CameraPermissionState) -> Unit) {
-        if (permissionState() != CameraPermissionState.NOT_DETERMINED) {
-            onResult(permissionState())
-            return
-        }
-
-        AVCaptureDevice.requestAccessForMediaType(AVMediaTypeVideo) {
-            dispatch_async(dispatch_get_main_queue()) {
-                onResult(permissionState())
-            }
-        }
+        pendingPermissionCallback = onResult
+        postBridgeCommand(command = "requestPermission")
     }
 
     fun startPreview() {
-        dispatch_async(sessionQueue) {
-            ensureConfigured()
-            if (!session.running) {
-                session.startRunning()
-            }
-        }
+        postBridgeCommand(command = "start")
     }
 
     fun stopPreview() {
-        dispatch_async(sessionQueue) {
-            if (session.running) {
-                session.stopRunning()
-            }
-        }
+        postBridgeCommand(command = "stop")
     }
 
-    fun switchCamera() {
-        dispatch_async(sessionQueue) {
-            val nextFacing = if (currentFacing == CameraFacing.BACK) CameraFacing.FRONT else CameraFacing.BACK
-            switchToFacing(nextFacing)
-        }
-    }
-
-    fun setFlashMode(mode: FlashMode) {
-        currentFlashMode = mode
-    }
-
-    fun capture(onResult: (ByteArray) -> Unit) {
-        dispatch_async(sessionQueue) {
-            if (pendingCaptureCallback != null) {
-                dispatch_async(dispatch_get_main_queue()) {
-                    onResult(ByteArray(0))
-                }
-                return@dispatch_async
-            }
-
-            ensureConfigured()
-
-            val settings = AVCapturePhotoSettings.photoSettingsWithFormat(
-                mapOf(AVVideoCodecKey to AVVideoCodecTypeJPEG)
-            )
-
-            settings.flashMode = when (currentFlashMode) {
-                FlashMode.OFF -> AVCaptureFlashModeOff
-                FlashMode.ON -> AVCaptureFlashModeOn
-                FlashMode.AUTO -> AVCaptureFlashModeAuto
-            }
-
-            pendingCaptureCallback = onResult
-            photoOutput.capturePhotoWithSettings(settings, captureDelegate)
-        }
-    }
-
-    private fun ensureConfigured() {
-        if (currentInput != null) {
-            return
-        }
-
-        session.beginConfiguration()
-        session.sessionPreset = AVCaptureSessionPresetPhoto
-
-        val device = findDeviceForFacing(currentFacing)
-        val input = device?.let { createInput(it) }
-
-        if (input != null && session.canAddInput(input)) {
-            session.addInput(input)
-            currentInput = input
-        }
-
-        if (session.canAddOutput(photoOutput)) {
-            session.addOutput(photoOutput)
-        }
-
-        session.commitConfiguration()
-    }
-
-    private fun switchToFacing(facing: CameraFacing) {
-        val oldInput = currentInput ?: run {
-            currentFacing = facing
-            return
-        }
-
-        val newDevice = findDeviceForFacing(facing) ?: return
-        val newInput = createInput(newDevice) ?: return
-
-        session.beginConfiguration()
-        session.removeInput(oldInput)
-
-        if (session.canAddInput(newInput)) {
-            session.addInput(newInput)
-            currentInput = newInput
-            currentFacing = facing
-        } else {
-            session.addInput(oldInput)
-        }
-
-        session.commitConfiguration()
-    }
-
-    private fun findDeviceForFacing(facing: CameraFacing): AVCaptureDevice? {
-        val position = when (facing) {
-            CameraFacing.BACK -> AVCaptureDevicePositionBack
-            CameraFacing.FRONT -> AVCaptureDevicePositionFront
-        }
-
-        return AVCaptureDevice.defaultDeviceWithDeviceType(
-            deviceType = AVCaptureDeviceTypeBuiltInWideAngleCamera,
-            mediaType = AVMediaTypeVideo,
-            position = position,
-        ) ?: AVCaptureDevice.defaultDeviceWithDeviceType(
-            deviceType = AVCaptureDeviceTypeBuiltInWideAngleCamera,
-            mediaType = AVMediaTypeVideo,
-            position = AVCaptureDevicePositionUnspecified,
+    fun attachPreviewHost(hostView: platform.UIKit.UIView) {
+        postBridgeCommand(
+            command = "attach",
+            payload = mapOf(KEY_HOST_VIEW to hostView),
         )
     }
 
-    private fun createInput(device: AVCaptureDevice): AVCaptureDeviceInput? {
-        return AVCaptureDeviceInput.deviceInputWithDevice(device = device, error = null) as? AVCaptureDeviceInput
+    fun detachPreviewHost() {
+        postBridgeCommand(command = "detach")
+    }
+
+    fun switchCamera() {
+        postBridgeCommand(command = "switch")
+    }
+
+    fun setFlashMode(mode: FlashMode) {
+        postBridgeCommand(
+            command = "setFlash",
+            payload = mapOf(KEY_FLASH_MODE to mode.name),
+        )
+    }
+
+    fun capture(onResult: (ByteArray) -> Unit) {
+        if (pendingCaptureCallback != null) {
+            dispatch_async(dispatch_get_main_queue()) {
+                onResult(ByteArray(0))
+            }
+            return
+        }
+
+        pendingCaptureCallback = onResult
+        postBridgeCommand(command = "capture")
+    }
+
+    private fun observeBridgeEvents() {
+        ensureBridgeRuntimeInstalled()
+
+        bridgeEventObserver = notificationCenter.addObserverForName(
+            name = EVENT_NAME,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue,
+        ) { notification: NSNotification? ->
+            handleBridgeEvent(notification)
+        }
+    }
+
+    private fun ensureBridgeRuntimeInstalled() {
+        val runtimeClass = NSClassFromString("AIPoseCameraBridgeRuntime")
+            ?: NSClassFromString("iosApp.AIPoseCameraBridgeRuntime")
+            ?: return
+
+        val runtimeObject = runtimeClass as? NSObject ?: return
+        val selector = sel_registerName("install")
+        runtimeObject.performSelector(selector)
+    }
+
+    private fun handleBridgeEvent(notification: NSNotification?) {
+        val userInfo = notification?.userInfo ?: return
+
+        val eventBridgeId = userInfo[KEY_BRIDGE_ID] as? String ?: return
+        if (eventBridgeId != bridgeId) {
+            return
+        }
+
+        val event = userInfo[KEY_EVENT] as? String ?: return
+        when (event) {
+            "captured" -> {
+                val data = userInfo[KEY_IMAGE_DATA] as? NSData
+                val callback = pendingCaptureCallback
+                pendingCaptureCallback = null
+                callback?.invoke(data?.toByteArray() ?: ByteArray(0))
+            }
+
+            "permissionState" -> {
+                val permissionRaw = userInfo[KEY_PERMISSION_STATE] as? String
+                val callback = pendingPermissionCallback
+                pendingPermissionCallback = null
+                callback?.invoke(permissionRaw.toPermissionStateOrFallback())
+            }
+        }
+    }
+
+    private fun postBridgeCommand(command: String, payload: Map<String, Any> = emptyMap()) {
+        val userInfo = mutableMapOf<Any?, Any?>(
+            KEY_BRIDGE_ID to bridgeId,
+            KEY_COMMAND to command,
+        )
+        payload.forEach { (key, value) ->
+            userInfo[key] = value
+        }
+
+        notificationCenter.postNotificationName(
+            aName = COMMAND_NAME,
+            `object` = null,
+            userInfo = userInfo,
+        )
+    }
+
+    private fun String?.toPermissionStateOrFallback(): CameraPermissionState {
+        return when (this) {
+            "AUTHORIZED" -> CameraPermissionState.AUTHORIZED
+            "DENIED" -> CameraPermissionState.DENIED
+            "RESTRICTED" -> CameraPermissionState.RESTRICTED
+            "NOT_DETERMINED" -> CameraPermissionState.NOT_DETERMINED
+            else -> permissionState()
+        }
+    }
+
+    companion object {
+        private const val COMMAND_NAME = "AIPoseCameraBridgeCommand"
+        private const val EVENT_NAME = "AIPoseCameraBridgeEvent"
+
+        private const val KEY_BRIDGE_ID = "bridgeId"
+        private const val KEY_COMMAND = "command"
+        private const val KEY_HOST_VIEW = "hostView"
+        private const val KEY_FLASH_MODE = "flashMode"
+
+        private const val KEY_EVENT = "event"
+        private const val KEY_PERMISSION_STATE = "permissionState"
+        private const val KEY_IMAGE_DATA = "imageData"
     }
 }
 
@@ -227,11 +189,4 @@ private fun NSData.toByteArray(): ByteArray {
     }
     val bytesPtr = bytes ?: return ByteArray(0)
     return bytesPtr.readBytes(lengthValue)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private fun AVCapturePhoto.asNSDataViaObjCMessage(selectorName: String): NSData? {
-    val selector = sel_registerName(selectorName)
-    val unmanaged = this.performSelector(selector)
-    return unmanaged as? NSData
 }

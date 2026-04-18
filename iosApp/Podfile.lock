@@ -1,8 +1,17 @@
 PODS:
   - composeApp (1.0)
+  - MijickCamera (3.0.1):
+    - MijickTimer
+  - MijickTimer (2.0.0)
 
 DEPENDENCIES:
   - composeApp (from `../composeApp`)
+  - MijickCamera (~> 3.0.0)
+
+SPEC REPOS:
+  trunk:
+    - MijickCamera
+    - MijickTimer
 
 EXTERNAL SOURCES:
   composeApp:
@@ -10,7 +19,9 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   composeApp: 0299a9239d7b7c14b2011a3bc9947273b28bc15e
+  MijickCamera: 9bd0fde4dff1bb3fe4966ec383e29a5ccbf125b0
+  MijickTimer: fe5957c755fd8e4e116a71acaba202a1f7b5ada7
 
-PODFILE CHECKSUM: cadb8f4834409d30799c2d71f1e92aea6a7fa626
+PODFILE CHECKSUM: 66763b66f982167cc7c5223d89b4ff4ebcde867b
 
 COCOAPODS: 1.16.2
