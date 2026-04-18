@@ -14,12 +14,9 @@ import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSUUID
 import platform.Foundation.NSOperationQueue
-import platform.Foundation.NSClassFromString
-import platform.darwin.NSObject
 import platform.darwin.NSObjectProtocol
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
-import platform.objc.sel_registerName
 
 @OptIn(ExperimentalForeignApi::class)
 internal class IOSCameraController {
@@ -93,8 +90,6 @@ internal class IOSCameraController {
     }
 
     private fun observeBridgeEvents() {
-        ensureBridgeRuntimeInstalled()
-
         bridgeEventObserver = notificationCenter.addObserverForName(
             name = EVENT_NAME,
             `object` = null,
@@ -104,15 +99,6 @@ internal class IOSCameraController {
         }
     }
 
-    private fun ensureBridgeRuntimeInstalled() {
-        val runtimeClass = NSClassFromString("AIPoseCameraBridgeRuntime")
-            ?: NSClassFromString("iosApp.AIPoseCameraBridgeRuntime")
-            ?: return
-
-        val runtimeObject = runtimeClass as? NSObject ?: return
-        val selector = sel_registerName("install")
-        runtimeObject.performSelector(selector)
-    }
 
     private fun handleBridgeEvent(notification: NSNotification?) {
         val userInfo = notification?.userInfo ?: return

@@ -66,9 +66,9 @@ import MijickCamera
             case "detach":
                 detach(bridgeId: bridgeId)
             case "start":
-                controllers[bridgeId]?.setSessionActive(true)
+                break
             case "stop":
-                controllers[bridgeId]?.setSessionActive(false)
+                break
             case "capture":
                 controllers[bridgeId]?.capture()
             case "switch":
@@ -88,7 +88,12 @@ import MijickCamera
         let controller = controllers[bridgeId] ?? CameraViewController(bridgeId: bridgeId)
         controllers[bridgeId] = controller
 
-        guard let parent = hostView.findParentViewController() else { return }
+        guard let parent = hostView.findParentViewController() else {
+            DispatchQueue.main.async {
+                attach(bridgeId: bridgeId, hostView: hostView)
+            }
+            return
+        }
 
         if controller.parent !== parent {
             controller.willMove(toParent: nil)
@@ -120,7 +125,6 @@ import MijickCamera
 
     private static func detach(bridgeId: String) {
         guard let controller = controllers.removeValue(forKey: bridgeId) else { return }
-        controller.setSessionActive(false)
         controller.willMove(toParent: nil)
         controller.view.removeFromSuperview()
         controller.removeFromParent()
@@ -231,7 +235,6 @@ final class CameraViewController: UIViewController {
     }
 
     func setSessionActive(_ isActive: Bool) {
-        bridgeModel.setSessionActive(isActive)
     }
 
     func capture() {
@@ -249,8 +252,6 @@ final class CameraViewController: UIViewController {
 
 @MainActor
 private final class CameraBridgeModel: ObservableObject {
-    @Published private(set) var isSessionActive = false
-
     private var captureAction: (() -> Void)?
     private var switchAction: (() -> Void)?
     private var flashAction: ((CameraFlashMode) -> Void)?
@@ -273,10 +274,6 @@ private final class CameraBridgeModel: ObservableObject {
         flashAction = nil
     }
 
-    func setSessionActive(_ active: Bool) {
-        isSessionActive = active
-    }
-
     func capture() {
         captureAction?()
     }
@@ -297,30 +294,24 @@ private struct CameraRootView: View {
     let onImageCaptured: (Data) -> Void
 
     var body: some View {
-        Group {
-            if bridgeModel.isSessionActive {
-                MCamera()
-                    .setAudioAvailability(false)
-                    .setCapturedMediaScreen(nil)
-                    .setFlashMode(.off)
-                    .setCameraScreen {
-                        BridgeCameraScreen(
-                            cameraManager: $0,
-                            namespace: $1,
-                            closeMCameraAction: $2,
-                            bridgeModel: bridgeModel
-                        )
-                    }
-                    .onImageCaptured { image, _ in
-                        if let data = image.jpegData(compressionQuality: 0.92) {
-                            onImageCaptured(data)
-                        }
-                    }
-                    .startSession()
-            } else {
-                Color.black.ignoresSafeArea()
+        MCamera()
+            .setAudioAvailability(false)
+            .setCapturedMediaScreen(nil)
+            .setFlashMode(.off)
+            .setCameraScreen {
+                BridgeCameraScreen(
+                    cameraManager: $0,
+                    namespace: $1,
+                    closeMCameraAction: $2,
+                    bridgeModel: bridgeModel
+                )
             }
-        }
+            .onImageCaptured { image, _ in
+                if let data = image.jpegData(compressionQuality: 0.92) {
+                    onImageCaptured(data)
+                }
+            }
+            .startSession()
     }
 }
 

@@ -21,8 +21,10 @@ internal fun IOSCameraPreview(
         factory = {
             UIView(frame = CGRectZero.readValue()).apply {
                 backgroundColor = UIColor.blackColor
-                cameraController.attachPreviewHost(this)
             }
+        },
+        update = { hostView ->
+            cameraController.attachPreviewHost(hostView)
         },
         onRelease = {
             cameraController.detachPreviewHost()
