@@ -77,6 +77,13 @@ internal class IOSCameraController {
         )
     }
 
+    fun setGridVisible(isVisible: Boolean) {
+        postBridgeCommand(
+            command = "setGrid",
+            payload = mapOf(KEY_GRID_VISIBLE to isVisible),
+        )
+    }
+
     fun capture(onResult: (ByteArray) -> Unit) {
         if (pendingCaptureCallback != null) {
             dispatch_async(dispatch_get_main_queue()) {
@@ -160,6 +167,7 @@ internal class IOSCameraController {
         private const val KEY_COMMAND = "command"
         private const val KEY_HOST_VIEW = "hostView"
         private const val KEY_FLASH_MODE = "flashMode"
+        private const val KEY_GRID_VISIBLE = "gridVisible"
 
         private const val KEY_EVENT = "event"
         private const val KEY_PERMISSION_STATE = "permissionState"

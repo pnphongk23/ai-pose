@@ -33,6 +33,7 @@ import MijickCamera
     private static let keyCommand = "command"
     private static let keyHostView = "hostView"
     private static let keyFlashMode = "flashMode"
+    private static let keyGridVisible = "gridVisible"
 
     private static let keyEvent = "event"
     private static let keyPermissionState = "permissionState"
@@ -76,6 +77,9 @@ import MijickCamera
             case "setFlash":
                 let mode = AIPoseBridgeFlashMode(rawValueString: (userInfo[keyFlashMode] as? String) ?? "off")
                 controllers[bridgeId]?.setFlashMode(mode)
+            case "setGrid":
+                let isVisible = (userInfo[keyGridVisible] as? Bool) ?? false
+                controllers[bridgeId]?.setGridVisible(isVisible)
             case "requestPermission":
                 requestPermission(bridgeId: bridgeId)
             default:
@@ -248,6 +252,10 @@ final class CameraViewController: UIViewController {
     func setFlashMode(_ mode: AIPoseBridgeFlashMode) {
         bridgeModel.setFlashMode(mode.mijickMode)
     }
+
+    func setGridVisible(_ isVisible: Bool) {
+        bridgeModel.setGridVisible(isVisible)
+    }
 }
 
 @MainActor
@@ -255,25 +263,48 @@ private final class CameraBridgeModel: ObservableObject {
     private var captureAction: (() -> Void)?
     private var switchAction: (() -> Void)?
     private var flashAction: ((CameraFlashMode) -> Void)?
+    private var gridAction: ((Bool) -> Void)?
     private var pendingFlashMode: CameraFlashMode = .off
-
+    private var pendingGridVisible = false
+    private var isGridReady = false
+    
     func attachActions(
         capture: @escaping () -> Void,
         switchCamera: @escaping () -> Void,
-        setFlashMode: @escaping (CameraFlashMode) -> Void
+        setFlashMode: @escaping (CameraFlashMode) -> Void,
+        setGridVisible: @escaping (Bool) -> Void
     ) {
         captureAction = capture
         switchAction = switchCamera
         flashAction = setFlashMode
+        gridAction = setGridVisible
+        isGridReady = false
         setFlashMode(pendingFlashMode)
     }
 
+    func markGridReady() {
+        isGridReady = true
+    }
+
+    func applyPendingGridVisibilityIfReady() {
+        guard isGridReady else { return }
+        gridAction?(pendingGridVisible)
+    }
+    
     func detachActions() {
         captureAction = nil
         switchAction = nil
         flashAction = nil
+        gridAction = nil
+        isGridReady = false
     }
 
+    func setGridVisible(_ isVisible: Bool) {
+        pendingGridVisible = isVisible
+        guard isGridReady else { return }
+        gridAction?(isVisible)
+    }
+    
     func capture() {
         captureAction?()
     }
@@ -289,54 +320,59 @@ private final class CameraBridgeModel: ObservableObject {
 }
 
 private struct CameraRootView: View {
-    @ObservedObject var bridgeModel: CameraBridgeModel
-    let bridgeId: String
-    let onImageCaptured: (Data) -> Void
-
-    var body: some View {
-        MCamera()
-            .setAudioAvailability(false)
-            .setCapturedMediaScreen(nil)
-            .setFlashMode(.off)
-            .setCameraScreen {
-                BridgeCameraScreen(
-                    cameraManager: $0,
-                    namespace: $1,
-                    closeMCameraAction: $2,
-                    bridgeModel: bridgeModel
-                )
-            }
-            .onImageCaptured { image, _ in
-                if let data = image.jpegData(compressionQuality: 0.92) {
-                    onImageCaptured(data)
+        @ObservedObject var bridgeModel: CameraBridgeModel
+        let bridgeId: String
+        let onImageCaptured: (Data) -> Void
+        
+        var body: some View {
+            MCamera()
+                .setAudioAvailability(false)
+                .setCapturedMediaScreen(nil)
+                .setFlashMode(.off)
+                .setCameraScreen {
+                    BridgeCameraScreen(
+                        cameraManager: $0,
+                        namespace: $1,
+                        closeMCameraAction: $2,
+                        bridgeModel: bridgeModel
+                    )
                 }
-            }
-            .startSession()
+                .onImageCaptured { image, _ in
+                    if let data = image.jpegData(compressionQuality: 0.92) {
+                        onImageCaptured(data)
+                    }
+                }
+                .startSession()
+        }
     }
-}
-
-private struct BridgeCameraScreen: MCameraScreen {
-    @ObservedObject var cameraManager: CameraManager
-    let namespace: Namespace.ID
-    let closeMCameraAction: () -> ()
-    let bridgeModel: CameraBridgeModel
-
-    var body: some View {
-        createCameraOutputView()
-            .ignoresSafeArea()
-            .onAppear {
-                bridgeModel.attachActions(
-                    capture: { captureOutput() },
-                    switchCamera: {
-                        Task { @MainActor in
-                            try? await setCameraPosition(cameraPosition == .back ? .front : .back)
-                        }
-                    },
-                    setFlashMode: { setFlashMode($0) }
-                )
-            }
-            .onDisappear {
-                bridgeModel.detachActions()
-            }
+    
+    private struct BridgeCameraScreen: MCameraScreen {
+        @ObservedObject var cameraManager: CameraManager
+        let namespace: Namespace.ID
+        let closeMCameraAction: () -> ()
+        let bridgeModel: CameraBridgeModel
+        
+        var body: some View {
+            createCameraOutputView()
+                .ignoresSafeArea()
+                .onAppear {
+                    bridgeModel.attachActions(
+                        capture: { captureOutput() },
+                        switchCamera: {
+                            Task { @MainActor in
+                                try? await setCameraPosition(cameraPosition == .back ? .front : .back)
+                            }
+                        },
+                        setFlashMode: { setFlashMode($0) },
+                        setGridVisible: { setGridVisibility($0) }
+                    )
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        bridgeModel.markGridReady()
+                        bridgeModel.applyPendingGridVisibilityIfReady()
+                    }
+                }
+                .onDisappear {
+                    bridgeModel.detachActions()
+                }
+        }
     }
-}

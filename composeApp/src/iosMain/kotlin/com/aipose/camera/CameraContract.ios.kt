@@ -38,6 +38,10 @@ actual class CameraController {
         impl.setFlashMode(mode)
     }
 
+    actual fun setGridVisible(isVisible: Boolean) {
+        impl.setGridVisible(isVisible)
+    }
+
     actual fun openAppSettings() {
         val url = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
         if (url != null) {
