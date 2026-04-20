@@ -42,6 +42,10 @@ actual class CameraController {
         impl.setGridVisible(isVisible)
     }
 
+    actual fun setZoomFactor(zoomFactor: Float) {
+        impl.setZoomFactor(zoomFactor)
+    }
+
     actual fun openAppSettings() {
         val url = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
         if (url != null) {

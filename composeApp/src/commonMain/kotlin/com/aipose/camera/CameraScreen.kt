@@ -1,5 +1,6 @@
 package com.aipose.camera
 
+import com.aipose.ui.components.NeoBrutalismContainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
@@ -45,12 +47,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import com.aipose.data.DatabaseDriverFactory
 import com.aipose.data.DatabaseProvider
 import com.aipose.data.ImageStorage
 import com.aipose.data.PhotoRepository
 import com.aipose.navigation.GalleryTab
+import com.aipose.navigation.PosesTab
 import com.aipose.ui.theme.AiPoseColors
 import com.aipose.ui.theme.AiPoseTypography
 import com.aipose.ui.theme.Spacing
@@ -70,10 +76,17 @@ fun CameraScreen(
     var uiState by remember {
         mutableStateOf(CameraUiState(permissionState = controller.currentPermissionState()))
     }
+    var zoomUiState by remember {
+        mutableStateOf(CameraZoomUiState())
+    }
 
     val fallbackOverlaySource = remember {
         OverlaySourceState.PlaceholderAsset("camera_overlay_placeholder")
     }
+    val previewAspectRatio = remember(uiState.frameRatio) {
+        uiState.frameRatio.width.toFloat() / uiState.frameRatio.height.toFloat()
+    }
+
     val effectiveOverlaySource = remember(uiState.overlaySource, fallbackOverlaySource) {
         when (uiState.overlaySource) {
             is OverlaySourceState.PoseImage -> uiState.overlaySource
@@ -138,24 +151,106 @@ fun CameraScreen(
             .background(Color(0xFFF6F1E8))
             .padding(horizontal = 12.dp, vertical = 16.dp),
     ) {
-        Box(
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).semantics { testTag = "headerText" },
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(Modifier.size(8.dp).clip(RoundedCornerShape(2.dp)).background(AiPoseColors.Foreground))
+            Spacer(Modifier.width(8.dp))
+            Text("CAMERA SCREEN", style = AiPoseTypography.Caption, fontWeight = FontWeight.Bold, color = AiPoseColors.Foreground, letterSpacing = 1.sp)
+        }
+
+        NeoBrutalismContainer(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
-                .clip(RoundedCornerShape(24.dp))
-                .border(2.dp, Color(0xFFD4CDC0), RoundedCornerShape(24.dp))
-                .background(Color.Black),
-            contentAlignment = Alignment.Center,
+                .weight(1f),
+            shape = RoundedCornerShape(48.dp),
+            backgroundColor = Color(0xFFF6F1E8),
+            shadowColor = Color.Black,
+            shadowOffset = 6.dp,
+            borderWidth = 3.dp
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(uiState.frameRatio.width.toFloat() / uiState.frameRatio.height.toFloat()),
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(48.dp)),
             ) {
                 CameraPreview(
                     modifier = Modifier.fillMaxSize(),
                     controller = controller,
                 )
+
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color(0xFFF6F1E8).copy(alpha = 0.18f)),
+                )
+
+                CameraGridOverlay()
+                CenterCrosshair()
+
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (zoomUiState.isZoomSliderVisible) {
+                        CameraZoomSlider(
+                            value = zoomUiState.zoomValue,
+                            onValueChange = {
+                                zoomUiState = setCameraZoomValue(zoomUiState, it)
+                                controller.setZoomFactor(zoomUiState.zoomValue)
+                            },
+                        )
+                    }
+
+                    CameraZoomButton(
+                        label = cameraZoomLabel(zoomUiState.zoomValue),
+                        onClick = { zoomUiState = toggleCameraZoomSlider(zoomUiState) },
+                    )
+                }
+
+                CameraPoseShortcut(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 12.dp, bottom = 12.dp),
+                    onClick = { tabNavigator.current = PosesTab },
+                )
+
+                CameraOverlayActionButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 12.dp, end = 12.dp),
+                    label = "⋯",
+                    onClick = { toggleMoreMenu() },
+                )
+
+                if (uiState.isMoreMenuVisible) {
+                    val density = androidx.compose.ui.platform.LocalDensity.current
+                    val popupYOffset = with(density) { 64.dp.roundToPx() }
+                    Popup(
+                        alignment = Alignment.TopEnd,
+                        offset = UiIntOffset(0, popupYOffset),
+                        onDismissRequest = { uiState = uiState.copy(isMoreMenuVisible = false) },
+                        properties = PopupProperties(focusable = true),
+                    ) {
+                        AnimatedCameraMorePopup(
+                            uiState = uiState,
+                            onFlashSelected = { mode: FlashMode ->
+                                updateFlashMode(mode)
+                                uiState = uiState.copy(isMoreMenuVisible = false)
+                            },
+                            onToggleGrid = {
+                                toggleGrid()
+                                uiState = uiState.copy(isMoreMenuVisible = false)
+                            },
+                            onFrameRatioSelected = { ratio: CameraFrameRatio -> selectFrameRatio(ratio) },
+                        )
+                    }
+                }
 
                 if (hasOverlay || effectiveOverlaySource is OverlaySourceState.PlaceholderAsset) {
                     OverlayPlaceholder(
@@ -187,68 +282,10 @@ fun CameraScreen(
                             .background(Color.White.copy(alpha = 0.25f)),
                     )
                 }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 12.dp, end = 12.dp)
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFF6F1E8))
-                        .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(10.dp))
-                        .clickable { toggleMoreMenu() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("⋯", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Foreground)
-                }
-
-                if (uiState.isMoreMenuVisible) {
-                    val popupOffset = cameraMorePopupOffset()
-                    Popup(
-                        alignment = Alignment.TopEnd,
-                        offset = UiIntOffset(popupOffset.x, popupOffset.y),
-                        onDismissRequest = { uiState = uiState.copy(isMoreMenuVisible = false) },
-                        properties = PopupProperties(focusable = true),
-                    ) {
-                        AnimatedCameraMorePopup(
-                            uiState = uiState,
-                            onFlashSelected = { mode: FlashMode ->
-                                updateFlashMode(mode)
-                                uiState = uiState.copy(isMoreMenuVisible = false)
-                            },
-                            onToggleGrid = {
-                                toggleGrid()
-                                uiState = uiState.copy(isMoreMenuVisible = false)
-                            },
-                            onFrameRatioSelected = { ratio: CameraFrameRatio -> selectFrameRatio(ratio) },
-                        )
-                    }
-                }
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFF6F1E8))
-                    .border(2.dp, AiPoseColors.Foreground, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = uiState.frameRatio.label(),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AiPoseColors.Foreground,
-                )
-            }
-        }
 
         if (uiState.captureStatus != null) {
             Text(
@@ -262,9 +299,9 @@ fun CameraScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, start = 24.dp, end = 24.dp),
+                .padding(top = 8.dp, start = 24.dp, end = 24.dp, bottom = 24.dp),
             horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             GalleryThumbnailButton(
                 thumbnailState = uiState.thumbnailState,
@@ -320,6 +357,157 @@ private fun CameraFrameRatio.label(): String = when (this) {
     CameraFrameRatio.RATIO_4_3 -> "4:3"
     CameraFrameRatio.RATIO_16_9 -> "16:9"
     CameraFrameRatio.RATIO_1_1 -> "1:1"
+}
+
+@Composable
+private fun CameraGridOverlay() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(1.dp)
+                .background(Color.Black.copy(alpha = 0.15f))
+                .align(Alignment.CenterStart)
+                .offset(x = 128.dp),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(1.dp)
+                .background(Color.Black.copy(alpha = 0.15f))
+                .align(Alignment.CenterEnd)
+                .offset(x = (-128).dp),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.Black.copy(alpha = 0.15f))
+                .align(Alignment.TopCenter)
+                .offset(y = 180.dp),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.Black.copy(alpha = 0.15f))
+                .align(Alignment.BottomCenter)
+                .offset(y = (-180).dp),
+        )
+    }
+}
+
+@Composable
+private fun CenterCrosshair() {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize().alpha(0.8f)) {
+        Box(modifier = Modifier.size(40.dp).border(2.dp, AiPoseColors.Foreground, CircleShape))
+        Box(modifier = Modifier.width(2.dp).height(80.dp).background(AiPoseColors.Foreground))
+        Box(modifier = Modifier.offset(y = (-56).dp)) {
+            Box(modifier = Modifier.width(64.dp).height(2.dp).background(AiPoseColors.Foreground).graphicsLayer { rotationZ = -50f }.offset(x = (-8).dp))
+            Box(modifier = Modifier.width(64.dp).height(2.dp).background(AiPoseColors.Foreground).graphicsLayer { rotationZ = 30f }.offset(x = 8.dp))
+        }
+        Box(modifier = Modifier.offset(y = (-4).dp)) {
+            Box(modifier = Modifier.width(80.dp).height(2.dp).background(AiPoseColors.Foreground).graphicsLayer { rotationZ = -60f })
+            Box(modifier = Modifier.width(80.dp).height(2.dp).background(AiPoseColors.Foreground).graphicsLayer { rotationZ = 20f })
+        }
+    }
+}
+
+@Composable
+private fun CameraOverlayActionButton(
+    modifier: Modifier = Modifier,
+    label: String,
+    background: Color = Color(0xFFF6F1E8),
+    onClick: () -> Unit,
+) {
+    NeoBrutalismContainer(
+        modifier = modifier.semantics { testTag = "overlayAction_${label}" },
+        shape = RoundedCornerShape(12.dp),
+        backgroundColor = background,
+        shadowColor = Color.Black,
+        shadowOffset = 4.dp,
+        onClick = onClick
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Foreground)
+        }
+    }
+}
+
+@Composable
+private fun CameraPoseShortcut(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    NeoBrutalismContainer(
+        modifier = modifier.semantics { testTag = "poseButton" }.size(44.dp),
+        shape = CircleShape,
+        backgroundColor = Color(0xFF87CEEB),
+        shadowColor = Color.Black,
+        shadowOffset = 4.dp,
+        onClick = onClick
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("👥", fontSize = 16.sp)
+        }
+    }
+}
+
+@Composable
+private fun CameraZoomButton(
+    label: String,
+    onClick: () -> Unit,
+) {
+    NeoBrutalismContainer(
+        modifier = Modifier.semantics { testTag = "zoomButton" },
+        shape = CircleShape,
+        backgroundColor = Color(0xFFF6F1E8),
+        shadowColor = Color.Black,
+        shadowOffset = 4.dp,
+        onClick = onClick
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Foreground)
+        }
+    }
+}
+
+@Composable
+private fun CameraZoomSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .semantics(mergeDescendants = true) { 
+                testTag = "zoomSlider"
+                contentDescription = "zoomSlider"
+            }
+            .clickable(onClick = {})
+            .width(180.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xFF171717))
+            .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(18.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(cameraZoomLabel(value), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = 1f..3f,
+        )
+    }
 }
 
 @Composable
@@ -392,19 +580,17 @@ private fun CaptureButton(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier
-            .size(64.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFF6F1E8))
-            .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(18.dp))
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(4.dp),
-        contentAlignment = Alignment.Center,
+    NeoBrutalismContainer(
+        modifier = Modifier.size(64.dp),
+        shape = RoundedCornerShape(18.dp),
+        backgroundColor = Color(0xFFF6F1E8),
+        shadowColor = Color(0xFFE7A1B0),
+        onClick = if (enabled) onClick else null
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(4.dp)
                 .clip(RoundedCornerShape(13.dp))
                 .background(Color(0xFFE7A1B0))
                 .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(13.dp))
@@ -418,43 +604,36 @@ private fun GalleryThumbnailButton(
     thumbnailState: ThumbnailState,
     onClick: () -> Unit,
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(10.dp))
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            when (thumbnailState) {
-                is ThumbnailState.Available -> Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFFF4C542)),
-                )
-                ThumbnailState.Empty -> Text("G", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Foreground)
-            }
+    NeoBrutalismContainer(
+        modifier = Modifier.size(48.dp),
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color(0xFFF6F1E8),
+        shadowColor = Color(0xFFF4C542),
+        onClick = onClick
+    ) {
+        when (thumbnailState) {
+            is ThumbnailState.Available -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(10.dp))
+                    .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(10.dp))
+                    .background(Color(0xFFF4C542)),
+            )
+            ThumbnailState.Empty -> Text("G", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Foreground)
         }
-        Text("GALLERY", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = AiPoseColors.Foreground)
     }
 }
 
 @Composable
 private fun FlipShortcutButton(onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF6F1E8))
-                .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(10.dp))
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("⟳", fontSize = 18.sp, color = AiPoseColors.Foreground)
-        }
-        Text("FLIP", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = AiPoseColors.Foreground)
+    NeoBrutalismContainer(
+        modifier = Modifier.size(48.dp),
+        shape = RoundedCornerShape(10.dp),
+        backgroundColor = Color(0xFFF6F1E8),
+        shadowColor = Color(0xFFF4C542),
+        onClick = onClick
+    ) {
+        Text("⟳", fontSize = 18.sp, color = AiPoseColors.Foreground)
     }
 }
 
@@ -502,15 +681,17 @@ private fun CameraMorePopup(
     onToggleGrid: () -> Unit,
     onFrameRatioSelected: (CameraFrameRatio) -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .width(148.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF171717))
-            .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(16.dp))
-            .padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    NeoBrutalismContainer(
+        modifier = modifier.width(148.dp),
+        shape = RoundedCornerShape(16.dp),
+        backgroundColor = Color(0xFF171717),
+        shadowColor = Color(0xFFF4C542),
+        shadowOffset = 4.dp
     ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
         MorePopupRow(title = "Flash", value = uiState.flashMode.name) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FlashMode.values().forEach { mode ->
@@ -535,6 +716,7 @@ private fun CameraMorePopup(
             }
         }
     }
+}
 }
 
 @Composable

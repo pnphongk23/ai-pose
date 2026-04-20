@@ -34,6 +34,7 @@ import MijickCamera
     private static let keyHostView = "hostView"
     private static let keyFlashMode = "flashMode"
     private static let keyGridVisible = "gridVisible"
+    private static let keyZoomFactor = "zoomFactor"
 
     private static let keyEvent = "event"
     private static let keyPermissionState = "permissionState"
@@ -80,6 +81,9 @@ import MijickCamera
             case "setGrid":
                 let isVisible = (userInfo[keyGridVisible] as? Bool) ?? false
                 controllers[bridgeId]?.setGridVisible(isVisible)
+            case "setZoom":
+                let zoomFactor = (userInfo[keyZoomFactor] as? NSNumber)?.doubleValue ?? 1
+                controllers[bridgeId]?.setZoomFactor(CGFloat(zoomFactor))
             case "requestPermission":
                 requestPermission(bridgeId: bridgeId)
             default:
@@ -256,6 +260,10 @@ final class CameraViewController: UIViewController {
     func setGridVisible(_ isVisible: Bool) {
         bridgeModel.setGridVisible(isVisible)
     }
+
+    func setZoomFactor(_ zoomFactor: CGFloat) {
+        bridgeModel.setZoomFactor(zoomFactor)
+    }
 }
 
 @MainActor
@@ -264,22 +272,27 @@ private final class CameraBridgeModel: ObservableObject {
     private var switchAction: (() -> Void)?
     private var flashAction: ((CameraFlashMode) -> Void)?
     private var gridAction: ((Bool) -> Void)?
+    private var zoomAction: ((CGFloat) -> Void)?
     private var pendingFlashMode: CameraFlashMode = .off
     private var pendingGridVisible = false
+    private var pendingZoomFactor: CGFloat = 1
     private var isGridReady = false
-    
+
     func attachActions(
         capture: @escaping () -> Void,
         switchCamera: @escaping () -> Void,
         setFlashMode: @escaping (CameraFlashMode) -> Void,
-        setGridVisible: @escaping (Bool) -> Void
+        setGridVisible: @escaping (Bool) -> Void,
+        setZoomFactor: @escaping (CGFloat) -> Void
     ) {
         captureAction = capture
         switchAction = switchCamera
         flashAction = setFlashMode
         gridAction = setGridVisible
+        zoomAction = setZoomFactor
         isGridReady = false
         setFlashMode(pendingFlashMode)
+        setZoomFactor(pendingZoomFactor)
     }
 
     func markGridReady() {
@@ -296,6 +309,7 @@ private final class CameraBridgeModel: ObservableObject {
         switchAction = nil
         flashAction = nil
         gridAction = nil
+        zoomAction = nil
         isGridReady = false
     }
 
@@ -304,7 +318,12 @@ private final class CameraBridgeModel: ObservableObject {
         guard isGridReady else { return }
         gridAction?(isVisible)
     }
-    
+
+    func setZoomFactor(_ zoomFactor: CGFloat) {
+        pendingZoomFactor = zoomFactor
+        zoomAction?(zoomFactor)
+    }
+
     func capture() {
         captureAction?()
     }
@@ -364,7 +383,8 @@ private struct CameraRootView: View {
                             }
                         },
                         setFlashMode: { setFlashMode($0) },
-                        setGridVisible: { setGridVisibility($0) }
+                        setGridVisible: { setGridVisibility($0) },
+                        setZoomFactor: { try? setZoomFactor($0) }
                     )
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         bridgeModel.markGridReady()

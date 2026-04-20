@@ -84,6 +84,13 @@ internal class IOSCameraController {
         )
     }
 
+    fun setZoomFactor(zoomFactor: Float) {
+        postBridgeCommand(
+            command = "setZoom",
+            payload = mapOf(KEY_ZOOM_FACTOR to zoomFactor.toDouble()),
+        )
+    }
+
     fun capture(onResult: (ByteArray) -> Unit) {
         if (pendingCaptureCallback != null) {
             dispatch_async(dispatch_get_main_queue()) {
@@ -168,6 +175,7 @@ internal class IOSCameraController {
         private const val KEY_HOST_VIEW = "hostView"
         private const val KEY_FLASH_MODE = "flashMode"
         private const val KEY_GRID_VISIBLE = "gridVisible"
+        private const val KEY_ZOOM_FACTOR = "zoomFactor"
 
         private const val KEY_EVENT = "event"
         private const val KEY_PERMISSION_STATE = "permissionState"

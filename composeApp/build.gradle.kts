@@ -30,6 +30,12 @@ kotlin {
             isStatic = true
             linkerOpts("-lsqlite3")
         }
+        target.compilations.all {
+            kotlinOptions.freeCompilerArgs += listOf(
+                "-Xopt-in=androidx.compose.ui.ExperimentalComposeUiApi",
+                "-Xopt-in=org.jetbrains.compose.ExperimentalComposeApi"
+            )
+        }
     }
 
     sourceSets {
@@ -45,6 +51,10 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.stately.common)
             implementation(project(":shared"))
+        }
+        all {
+            languageSettings.optIn("androidx.compose.ui.ExperimentalComposeUiApi")
+            languageSettings.optIn("org.jetbrains.compose.ExperimentalComposeApi")
         }
     }
 }

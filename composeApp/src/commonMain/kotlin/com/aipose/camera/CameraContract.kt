@@ -33,6 +33,7 @@ expect class CameraController() {
     fun switchCamera()
     fun setFlashMode(mode: FlashMode)
     fun setGridVisible(isVisible: Boolean)
+    fun setZoomFactor(zoomFactor: Float)
     fun openAppSettings()
 }
 
