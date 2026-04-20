@@ -25,6 +25,9 @@ SELECT * FROM Photo WHERE poseId = ? ORDER BY createdAt DESC;
 getFavoritePhotos:
 SELECT * FROM Photo WHERE isFavorite = 1 ORDER BY createdAt DESC;
 
+getLatestPhoto:
+SELECT * FROM Photo ORDER BY id DESC LIMIT 1;
+
 insertPhoto:
 INSERT INTO Photo(imagePath, poseId, poseName, createdAt, isFavorite)
 VALUES (?, ?, ?, ?, ?);

@@ -20,6 +20,7 @@ kotlin {
         framework {
             baseName = "ComposeApp"
             isStatic = true
+            linkerOpts("-lsqlite3")
         }
     }
 
@@ -27,6 +28,13 @@ kotlin {
         target.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            linkerOpts("-lsqlite3")
+        }
+        target.compilations.all {
+            kotlinOptions.freeCompilerArgs += listOf(
+                "-Xopt-in=androidx.compose.ui.ExperimentalComposeUiApi",
+                "-Xopt-in=org.jetbrains.compose.ExperimentalComposeApi"
+            )
         }
     }
 
@@ -44,6 +52,10 @@ kotlin {
             implementation(libs.stately.common)
             implementation(libs.coil.compose)
             implementation(project(":shared"))
+        }
+        all {
+            languageSettings.optIn("androidx.compose.ui.ExperimentalComposeUiApi")
+            languageSettings.optIn("org.jetbrains.compose.ExperimentalComposeApi")
         }
     }
 }

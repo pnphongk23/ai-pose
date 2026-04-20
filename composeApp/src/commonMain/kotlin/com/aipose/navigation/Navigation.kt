@@ -31,6 +31,7 @@ import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.aipose.Pose
+import com.aipose.camera.CameraScreen
 import com.aipose.ui.screens.poses.PoseDetailScreen
 import com.aipose.ui.screens.poses.PoseDetailViewModel
 import com.aipose.ui.screens.poses.PosesScreen
@@ -55,7 +56,7 @@ object CameraTab : Tab {
 
     @Composable
     override fun Content() {
-        PlaceholderScreen("Camera")
+        CameraScreen()
     }
 }
 

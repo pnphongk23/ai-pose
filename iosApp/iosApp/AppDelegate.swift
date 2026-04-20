@@ -10,6 +10,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        AIPoseCameraBridgeRuntime.install()
+
         window = UIWindow(frame: UIScreen.main.bounds)
         let mainViewController = MainViewControllerKt.MainViewController()
         window?.rootViewController = mainViewController
