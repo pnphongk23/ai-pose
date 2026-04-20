@@ -16,6 +16,11 @@ object AiPoseTypography {
         fontWeight = FontWeight.Bold,
         lineHeight = 30.sp
     )
+    val GalleryTitle = TextStyle(
+        fontSize = 22.sp,
+        fontWeight = FontWeight.ExtraBold,
+        lineHeight = 28.sp
+    )
     val Heading3 = TextStyle(
         fontSize = 18.sp,
         fontWeight = FontWeight.Bold,

@@ -26,4 +26,7 @@ object AiPoseColors {
     val WarningForeground = Color(0xFF9E6E06) // warning-700
     val Error = Color(0xFFEE4848)        // error-500
     val ErrorForeground = Color(0xFFB01E1E) // error-700
+
+    // Gallery
+    val AccentBlue = Color(0xFF87CEEB)
 }

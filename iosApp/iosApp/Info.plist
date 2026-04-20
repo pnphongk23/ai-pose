@@ -22,6 +22,8 @@
     <true/>
     <key>NSCameraUsageDescription</key>
     <string>Capture photos for pose comparison.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>AI Pose needs access to save your captured poses to Photos.</string>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>

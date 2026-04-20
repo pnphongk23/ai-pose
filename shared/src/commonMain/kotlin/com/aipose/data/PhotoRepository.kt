@@ -1,5 +1,11 @@
 package com.aipose.data
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import com.aipose.Photo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+
 class PhotoRepository(
     private val database: AiPoseDatabase,
 ) {
@@ -19,6 +25,19 @@ class PhotoRepository(
 
     fun getLatestPhotoPath(): String? {
         return queries.getLatestPhoto().executeAsOneOrNull()?.imagePath
+    }
+
+    fun getAllPhotos(): Flow<List<Photo>> = queries
+        .getAllPhotos()
+        .asFlow()
+        .mapToList(Dispatchers.Default)
+
+    suspend fun deletePhoto(id: Long) {
+        queries.deletePhoto(id)
+    }
+
+    suspend fun toggleFavorite(id: Long) {
+        queries.toggleFavorite(id)
     }
 
     private fun currentTimestampString(): String {

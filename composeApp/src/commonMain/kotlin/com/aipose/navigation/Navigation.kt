@@ -32,6 +32,8 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.aipose.Pose
 import com.aipose.camera.CameraScreen
+import com.aipose.ui.screens.gallery.GalleryScreen
+import com.aipose.ui.screens.gallery.GalleryViewModel
 import com.aipose.ui.screens.poses.PoseDetailScreen
 import com.aipose.ui.screens.poses.PoseDetailViewModel
 import com.aipose.ui.screens.poses.PosesScreen
@@ -96,7 +98,18 @@ object GalleryTab : Tab {
 
     @Composable
     override fun Content() {
-        PlaceholderScreen("Gallery")
+        Navigator(GalleryListScreen())
+    }
+}
+
+class GalleryListScreen : Screen {
+    @Composable
+    override fun Content() {
+        val tabNavigator = LocalTabNavigator.current
+        GalleryScreen(
+            viewModel = remember { GalleryViewModel() },
+            onOpenCamera = { tabNavigator.current = CameraTab },
+        )
     }
 }
 
