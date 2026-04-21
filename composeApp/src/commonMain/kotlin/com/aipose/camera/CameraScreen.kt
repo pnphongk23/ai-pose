@@ -581,7 +581,7 @@ private fun CaptureButton(
     onClick: () -> Unit,
 ) {
     NeoBrutalismContainer(
-        modifier = Modifier.size(64.dp),
+        modifier = Modifier.size(64.dp).semantics { testTag = "camera-capture-btn" },
         shape = RoundedCornerShape(18.dp),
         backgroundColor = Color(0xFFF6F1E8),
         shadowColor = Color(0xFFE7A1B0),
@@ -605,7 +605,7 @@ private fun GalleryThumbnailButton(
     onClick: () -> Unit,
 ) {
     NeoBrutalismContainer(
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier.size(48.dp).semantics { testTag = "camera-gallery-thumbnail" },
         shape = RoundedCornerShape(10.dp),
         backgroundColor = Color(0xFFF6F1E8),
         shadowColor = Color(0xFFF4C542),

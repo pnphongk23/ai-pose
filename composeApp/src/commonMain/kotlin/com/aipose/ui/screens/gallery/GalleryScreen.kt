@@ -17,11 +17,14 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Apps
+import org.jetbrains.compose.resources.painterResource
+import ai_pose.composeapp.generated.resources.Res
+import ai_pose.composeapp.generated.resources.ic_chevron_left
+import ai_pose.composeapp.generated.resources.ic_layout_grid
+import ai_pose.composeapp.generated.resources.ic_list
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,9 +40,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.aipose.ui.components.PrimaryButton
 import com.aipose.ui.components.SectionHeader
 import com.aipose.ui.components.cardChrome
@@ -50,6 +56,7 @@ import com.aipose.ui.theme.AiPoseTypography
 import com.aipose.ui.theme.CornerRadius
 import com.aipose.ui.theme.Spacing
 import com.aipose.platform.saveImageToPhotos
+import com.aipose.data.resolveImagePath
 import kotlinx.coroutines.launch
 
 @Composable
@@ -79,65 +86,94 @@ fun GalleryScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = Spacing.md),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 4.dp)
+                    .padding(top = 8.dp, bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                if (onBack != null) {
-                    IconButton(onClick = { onBack() }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (onBack != null) {
+                        Box(
+                            modifier = Modifier
+                                .semantics { testTag = "gallery-back-btn" }
+                                .size(32.dp)
+                                .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 10.dp)
+                                .background(AiPoseColors.Background, RoundedCornerShape(10.dp))
+                                .neoBorder(width = 2.dp, cornerRadius = 10.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { onBack() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_chevron_left),
+                                contentDescription = "Back",
+                                tint = AiPoseColors.Foreground,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "GALLERY",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = AiPoseColors.Foreground,
+                        letterSpacing = 0.06.em
+                    )
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val isGrid = uiState.viewMode == ViewMode.GRID
+                    Box(
+                        modifier = Modifier
+                            .semantics { testTag = "gallery-grid-toggle" }
+                            .size(32.dp)
+                            .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 10.dp)
+                            .background(
+                                color = if (isGrid) AiPoseColors.AccentBlue else AiPoseColors.Background,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .neoBorder(width = 2.dp, cornerRadius = 10.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { if (!isGrid) viewModel.toggleViewMode() },
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = AiPoseColors.Foreground
+                            painter = painterResource(Res.drawable.ic_layout_grid),
+                            contentDescription = "Grid view",
+                            tint = AiPoseColors.Foreground,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
-                }
 
-                Text(
-                    text = "GALLERY",
-                    style = AiPoseTypography.GalleryTitle,
-                    color = AiPoseColors.Foreground,
-                    letterSpacing = 0.08.em,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // GRID button
-                val isGrid = uiState.viewMode == ViewMode.GRID
-                IconButton(
-                    onClick = { if (!isGrid) viewModel.toggleViewMode() },
-                    modifier = Modifier
-                        .background(
-                            color = if (isGrid) AiPoseColors.AccentBlue else AiPoseColors.Background,
-                            shape = RoundedCornerShape(CornerRadius.sm)
+                    val isList = uiState.viewMode == ViewMode.LIST
+                    Box(
+                        modifier = Modifier
+                            .semantics { testTag = "gallery-list-toggle" }
+                            .size(32.dp)
+                            .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 10.dp)
+                            .background(
+                                color = if (isList) AiPoseColors.AccentBlue else AiPoseColors.Background,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .neoBorder(width = 2.dp, cornerRadius = 10.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { if (!isList) viewModel.toggleViewMode() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.ic_list),
+                            contentDescription = "List view",
+                            tint = AiPoseColors.Foreground,
+                            modifier = Modifier.size(16.dp)
                         )
-                        .neoBorder()
-                        .neoShadow(1.dp, 1.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Apps,
-                        contentDescription = "Grid view",
-                        tint = AiPoseColors.Foreground,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                // LIST button
-                val isList = uiState.viewMode == ViewMode.LIST
-                IconButton(
-                    onClick = { if (!isList) viewModel.toggleViewMode() },
-                    modifier = Modifier
-                        .background(
-                            color = if (isList) AiPoseColors.AccentBlue else AiPoseColors.Background,
-                            shape = RoundedCornerShape(CornerRadius.sm)
-                        )
-                        .neoBorder()
-                        .neoShadow(1.dp, 1.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.List,
-                        contentDescription = "List view",
-                        tint = AiPoseColors.Foreground,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    }
                 }
             }
 
@@ -229,10 +265,11 @@ fun GalleryScreen(
             onDismiss = { viewModel.selectPhoto(null) },
             onDelete = { id -> scope.launch { viewModel.deletePhoto(id) } },
             onToggleFavorite = { id -> scope.launch { viewModel.toggleFavorite(id) } },
-            onSave = { photo ->
-                val result = saveImageToPhotos(photo.imagePath, null)
-                if (!result) scope.launch { snackbarHostState.showSnackbar("Save failed") }
-            }
+            onSave = { p ->
+                    val resolvedPath = resolveImagePath(p.imagePath) ?: p.imagePath
+                    val result = saveImageToPhotos(resolvedPath, null)
+                    if (!result) scope.launch { snackbarHostState.showSnackbar("Save failed") }
+                }
         )
     }
     } // end Box overlay

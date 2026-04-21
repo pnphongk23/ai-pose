@@ -11,23 +11,32 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import org.jetbrains.compose.resources.painterResource
+import ai_pose.composeapp.generated.resources.Res
+import ai_pose.composeapp.generated.resources.ic_heart
+import ai_pose.composeapp.generated.resources.ic_heart_filled
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import com.aipose.data.resolveImagePath
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.aipose.Photo
-import com.aipose.ui.components.badgeChrome
 import com.aipose.ui.components.cardChrome
+import com.aipose.ui.components.neoBorder
+import com.aipose.ui.components.neoShadow
 import com.aipose.ui.theme.AiPoseColors
 import com.aipose.ui.theme.AiPoseTypography
 import com.aipose.ui.theme.CornerRadius
@@ -42,21 +51,24 @@ fun PhotoCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics { testTag = "gallery-photo-item" },
         verticalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .cardChrome()
-                .clip(RoundedCornerShape(CornerRadius.md))
-                .background(AiPoseColors.Surface),
+                .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 12.dp)
+                .background(AiPoseColors.Surface, RoundedCornerShape(12.dp))
+                .neoBorder(width = 2.dp, cornerRadius = 12.dp)
+                .clip(RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            if (photo.imagePath.isNotBlank()) {
+            val resolvedPath = remember(photo.imagePath) { resolveImagePath(photo.imagePath) }
+            if (resolvedPath != null) {
                 AsyncImage(
-                    model = photo.imagePath,
+                    model = resolvedPath,
                     contentDescription = photo.poseName,
                     modifier = Modifier.fillMaxWidth(),
                     contentScale = ContentScale.Crop
@@ -78,13 +90,19 @@ fun PhotoCard(
                     else -> AiPoseColors.Success
                 }
                 Text(
-                    text = photo.poseName,
+                    text = photo.poseName.uppercase(),
                     style = AiPoseTypography.Caption,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.06.em,
                     color = AiPoseColors.Foreground,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(Spacing.sm)
-                        .badgeChrome(badgeColor)
+                        .padding(6.dp)
+                        .neoShadow(offsetX = 1.dp, offsetY = 1.dp, cornerRadius = 8.dp)
+                        .background(badgeColor, RoundedCornerShape(8.dp))
+                        .neoBorder(width = 2.dp, cornerRadius = 8.dp)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
         }
@@ -98,14 +116,16 @@ fun PhotoCard(
             Text(
                 text = timeStr,
                 style = AiPoseTypography.Caption,
-                color = AiPoseColors.Subtext.copy(alpha = 0.6f),
+                color = AiPoseColors.Foreground.copy(alpha = 0.5f),
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.08.em,
                 fontSize = 9.sp
             )
             Icon(
-                imageVector = if (photo.isFavorite == 1L) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                painter = painterResource(if (photo.isFavorite == 1L) Res.drawable.ic_heart_filled else Res.drawable.ic_heart),
                 contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = if (photo.isFavorite == 1L) AiPoseColors.Primary else AiPoseColors.Subtext
+                modifier = Modifier.size(10.dp),
+                tint = if (photo.isFavorite == 1L) AiPoseColors.Primary else AiPoseColors.Foreground.copy(alpha = 0.3f)
             )
         }
     }

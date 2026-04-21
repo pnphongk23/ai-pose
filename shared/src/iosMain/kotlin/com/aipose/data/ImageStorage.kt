@@ -42,7 +42,7 @@ actual class ImageStorage actual constructor() {
 
         val data = bytes.toNSData()
         val written = data.writeToFile(fullPath, atomically = true)
-        return if (written) fullPath else null
+        return if (written) filename else null
     }
 }
 

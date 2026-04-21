@@ -28,19 +28,33 @@ fun Modifier.neoBorder(
 fun Modifier.neoShadow(
     offsetX: Dp = 3.dp,
     offsetY: Dp = 3.dp,
-    color: Color = AiPoseColors.Foreground
+    color: Color = AiPoseColors.Foreground,
+    cornerRadius: Dp = 0.dp
 ): Modifier = this.drawBehind {
     drawIntoCanvas { canvas ->
         val paint = Paint().apply {
             this.color = color
         }
-        canvas.drawRect(
-            left = offsetX.toPx(),
-            top = offsetY.toPx(),
-            right = size.width + offsetX.toPx(),
-            bottom = size.height + offsetY.toPx(),
-            paint = paint
-        )
+        val radius = cornerRadius.toPx()
+        if (radius > 0f) {
+            canvas.drawRoundRect(
+                left = offsetX.toPx(),
+                top = offsetY.toPx(),
+                right = size.width + offsetX.toPx(),
+                bottom = size.height + offsetY.toPx(),
+                radiusX = radius,
+                radiusY = radius,
+                paint = paint
+            )
+        } else {
+            canvas.drawRect(
+                left = offsetX.toPx(),
+                top = offsetY.toPx(),
+                right = size.width + offsetX.toPx(),
+                bottom = size.height + offsetY.toPx(),
+                paint = paint
+            )
+        }
     }
 }
 
@@ -51,7 +65,7 @@ fun Modifier.ghostBorder(): Modifier = this.border(
 )
 
 fun Modifier.cardChrome(): Modifier = this
-    .neoShadow(offsetX = 4.dp, offsetY = 4.dp)
+    .neoShadow(offsetX = 4.dp, offsetY = 4.dp, cornerRadius = CornerRadius.md)
     .background(AiPoseColors.Surface, RoundedCornerShape(CornerRadius.md))
     .neoBorder(cornerRadius = CornerRadius.md)
 
