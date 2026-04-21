@@ -1,0 +1,12 @@
+[build]
+builder = "dockerfile"
+
+[deploy]
+numReplicas = 1
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+
+[[mounts]]
+source = "data"
+destination = "/app/data"

@@ -54,3 +54,6 @@ iosApp/*.xcworkspace/xcuserdata/
 iosApp/*.xcodeproj/xcuserdata/
 *.xcuserstate
 DerivedData/
+
+# worktrees
+.worktrees/
