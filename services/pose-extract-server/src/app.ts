@@ -43,6 +43,18 @@ export function createApp(options: CreateAppOptions): express.Express {
   app.set("trust proxy", 1);
   app.use(express.json());
 
+  // CORS — allow browser clients (Next.js dev/prod)
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
+
   app.get("/api/health", (_req, res) => {
     const uptime = Math.max((Date.now() - startedAtMs) / 1000, 0);
     res.json({
