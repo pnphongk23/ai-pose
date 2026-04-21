@@ -1,11 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
 import express from "express";
+import fs from "node:fs";
 
 import { createAdminRoutes } from "./routes/adminRoutes";
 import { createExtractPoseRoutes } from "./routes/extractPoseRoutes";
+import { createCommunityRoutes } from "./routes/communityRoutes";
+import { createAdminCommunityRoutes } from "./routes/adminCommunityRoutes";
 import { AppError } from "./services/errors";
 import type { KeyPoolManager } from "./services/keyPoolManager";
 import type { KeyStore } from "./services/keyStore";
+import type { CommunityStore } from "./db/communityStore";
 import { logger } from "./utils/logger";
 
 interface GeminiServiceLike {
@@ -27,6 +31,8 @@ interface CreateAppOptions {
   adminRateLimitMaxRequests?: number;
   extractRateLimitWindowMs?: number;
   extractRateLimitMaxRequests?: number;
+  communityStore?: CommunityStore;
+  communityUploadDir?: string;
 }
 
 export function createApp(options: CreateAppOptions): express.Express {
@@ -69,6 +75,30 @@ export function createApp(options: CreateAppOptions): express.Express {
         rateLimitMaxRequests: options.extractRateLimitMaxRequests
       })
     );
+  }
+
+  // Community public routes
+  if (options.communityStore) {
+    app.use("/api/community/poses", createCommunityRoutes(options.communityStore));
+  }
+
+  // Admin community routes
+  if (options.adminSecret && options.communityStore && options.communityUploadDir) {
+    app.use(
+      "/api/admin/community/poses",
+      createAdminCommunityRoutes({
+        adminSecret: options.adminSecret,
+        communityStore: options.communityStore,
+        uploadDir: options.communityUploadDir,
+      })
+    );
+  }
+
+  // Serve uploaded community images as static files
+  if (options.communityUploadDir) {
+    const uploadDir = options.communityUploadDir;
+    fs.mkdirSync(uploadDir, { recursive: true });
+    app.use("/community", express.static(uploadDir));
   }
 
   app.use((_req, res) => {
