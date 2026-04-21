@@ -4,6 +4,7 @@ import com.aipose.ui.components.NeoBrutalismContainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -163,8 +164,7 @@ fun CameraScreen(
                 .weight(1f)
                 .padding(horizontal = 0.dp) // allow extending via -mx style
                 .border(2.dp, AiPoseColors.Border)
-        ) {
-            CameraPreview(
+        ) {            CameraPreview(
                 modifier = Modifier.fillMaxSize(),
                 controller = controller,
             )
@@ -210,33 +210,35 @@ fun CameraScreen(
                     .align(Alignment.TopEnd)
                     .padding(top = 64.dp, end = 12.dp)
             ) {
-                Box {
-                    CameraMoreButton(
-                        onClick = { uiState = uiState.copy(isMoreMenuVisible = true) }
-                    )
-                    
-                    if (uiState.isMoreMenuVisible) {
-                        val yOffset = with(androidx.compose.ui.platform.LocalDensity.current) { 48.dp.roundToPx() }
-                        Popup(
-                            alignment = Alignment.TopEnd,
-                            offset = UiIntOffset(0, yOffset),
-                            onDismissRequest = { uiState = uiState.copy(isMoreMenuVisible = false) },
-                            properties = PopupProperties(focusable = true)
-                        ) {
-                            CameraMorePopup(
-                                modifier = Modifier.width(144.dp),
-                                uiState = uiState,
-                                onFlashSelected = { mode: FlashMode ->
-                                    updateFlashMode(mode)
-                                    uiState = uiState.copy(isMoreMenuVisible = false)
-                                },
-                                onToggleGrid = {
-                                    toggleGrid()
-                                    uiState = uiState.copy(isMoreMenuVisible = false)
-                                },
-                                onFrameRatioSelected = { ratio: CameraFrameRatio -> selectFrameRatio(ratio) }
-                            )
-                        }
+                CameraMoreButton(
+                    onClick = { uiState = uiState.copy(isMoreMenuVisible = !uiState.isMoreMenuVisible) }
+                )
+            }
+
+            if (uiState.isMoreMenuVisible) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 116.dp, end = 12.dp)
+                ) {
+                    Popup(
+                        alignment = Alignment.TopEnd,
+                        onDismissRequest = { uiState = uiState.copy(isMoreMenuVisible = false) },
+                        properties = PopupProperties(focusable = true)
+                    ) {
+                        CameraMorePopup(
+                            modifier = Modifier.width(144.dp),
+                            uiState = uiState,
+                            onFlashSelected = { mode: FlashMode ->
+                                updateFlashMode(mode)
+                                uiState = uiState.copy(isMoreMenuVisible = false)
+                            },
+                            onToggleGrid = {
+                                toggleGrid()
+                                uiState = uiState.copy(isMoreMenuVisible = false)
+                            },
+                            onFrameRatioSelected = { ratio: CameraFrameRatio -> selectFrameRatio(ratio) }
+                        )
                     }
                 }
             }
@@ -659,65 +661,60 @@ private fun CameraMorePopup(
     onToggleGrid: () -> Unit,
     onFrameRatioSelected: (CameraFrameRatio) -> Unit,
 ) {
-    NeoBrutalismContainer(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        backgroundColor = AiPoseColors.Foreground,
-        borderColor = AiPoseColors.Foreground,
-        borderWidth = 2.dp,
-        shadowColor = AiPoseColors.Foreground,
-        shadowOffset = 3.dp,
+    Column(
+        modifier = modifier
+            .width(144.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(AiPoseColors.Foreground)
+            .border(2.dp, AiPoseColors.Foreground, RoundedCornerShape(16.dp))
+            .padding(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // Flash (AUTO)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { 
-                        val nextMode = when(uiState.flashMode) {
-                            FlashMode.OFF -> FlashMode.AUTO
-                            FlashMode.AUTO -> FlashMode.ON
-                            FlashMode.ON -> FlashMode.OFF
-                        }
-                        onFlashSelected(nextMode)
+        // Flash
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable {
+                    val nextMode = when (uiState.flashMode) {
+                        FlashMode.OFF -> FlashMode.AUTO
+                        FlashMode.AUTO -> FlashMode.ON
+                        FlashMode.ON -> FlashMode.OFF
                     }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painter = painterResource(Res.drawable.ic_zap), contentDescription = null, tint = AiPoseColors.Surface, modifier = Modifier.size(16.dp))
-                    Text("Flash", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = AiPoseColors.Surface, letterSpacing = 0.5.sp)
+                    onFlashSelected(nextMode)
                 }
-                Text(uiState.flashMode.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Warning, letterSpacing = 0.5.sp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(painter = painterResource(Res.drawable.ic_zap), contentDescription = null, tint = AiPoseColors.Surface, modifier = Modifier.size(16.dp))
+                Text("Flash", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = AiPoseColors.Surface, letterSpacing = 0.5.sp)
             }
+            Text(uiState.flashMode.name, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = AiPoseColors.Warning, letterSpacing = 0.5.sp)
+        }
 
-            Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(AiPoseColors.Surface.copy(alpha = 0.1f)))
+        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(AiPoseColors.Surface.copy(alpha = 0.1f)))
 
-            // Grid Toggle
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { onToggleGrid() }
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        // Grid Toggle
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { onToggleGrid() }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(painter = painterResource(Res.drawable.ic_grid), contentDescription = null, tint = AiPoseColors.Surface, modifier = Modifier.size(16.dp))
+                Text("Grid", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = AiPoseColors.Surface, letterSpacing = 0.5.sp)
+            }
+            Box(
+                modifier = Modifier.width(28.dp).height(16.dp).clip(CircleShape).background(if (uiState.isGridVisible) AiPoseColors.AccentBlue else AiPoseColors.Surface.copy(alpha = 0.2f)).padding(horizontal = 2.dp),
+                contentAlignment = if (uiState.isGridVisible) Alignment.CenterEnd else Alignment.CenterStart
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painter = painterResource(Res.drawable.ic_grid), contentDescription = null, tint = AiPoseColors.Surface, modifier = Modifier.size(16.dp))
-                    Text("Grid", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = AiPoseColors.Surface, letterSpacing = 0.5.sp)
-                }
-                Box(
-                    modifier = Modifier.width(28.dp).height(16.dp).clip(CircleShape).background(if (uiState.isGridVisible) AiPoseColors.AccentBlue else AiPoseColors.Surface.copy(alpha=0.2f)).padding(horizontal = 2.dp),
-                    contentAlignment = if (uiState.isGridVisible) Alignment.CenterEnd else Alignment.CenterStart
-                ) {
-                    Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(AiPoseColors.Surface))
-                }
+                Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(AiPoseColors.Surface))
             }
         }
     }

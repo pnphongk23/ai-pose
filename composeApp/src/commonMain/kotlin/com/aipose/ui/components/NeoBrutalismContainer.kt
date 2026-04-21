@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.aipose.ui.theme.AiPoseColors
 
 @Composable
@@ -56,19 +57,19 @@ fun NeoBrutalismContainer(
     } else Modifier
 
     Box(modifier = modifier.then(clickableModifier)) {
-        // Shadow layer – fixed position, always behind
+        // Shadow layer – behind content via zIndex
         if (hasShadow) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .offset(x = shadowOffset, y = shadowOffset)
                     .background(shadowColor, shape)
+                    .zIndex(-1f)
             )
         }
-        // Content layer – visual-only translation via graphicsLayer
+        // Content layer – drives the parent size (không dùng matchParentSize)
         Box(
             modifier = Modifier
-                .matchParentSize()
                 .graphicsLayer {
                     translationX = animatedTranslation.toPx()
                     translationY = animatedTranslation.toPx()

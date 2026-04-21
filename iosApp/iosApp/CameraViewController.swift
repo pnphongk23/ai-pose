@@ -227,6 +227,7 @@ final class CameraViewController: UIViewController {
 
         let host = UIHostingController(rootView: rootView)
         host.view.backgroundColor = .clear
+        host.view.isUserInteractionEnabled = false
 
         addChild(host)
         view.addSubview(host.view)
