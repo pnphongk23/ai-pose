@@ -35,8 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.aipose.Photo
 import com.aipose.ui.components.cardChrome
@@ -60,15 +58,11 @@ fun PhotoDetailDialog(
         scale = (scale * zoomChange).coerceIn(0.5f, 5f)
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AiPoseColors.Background)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(AiPoseColors.Background)
-        ) {
             // Zoomable image
             AsyncImage(
                 model = photo.imagePath,
@@ -153,7 +147,6 @@ fun PhotoDetailDialog(
                     )
                 }
             }
-        }
     }
 
     // Delete confirmation dialog

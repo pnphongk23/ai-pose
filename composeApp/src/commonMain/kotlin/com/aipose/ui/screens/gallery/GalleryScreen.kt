@@ -64,6 +64,7 @@ fun GalleryScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = AiPoseColors.Background
@@ -234,4 +235,5 @@ fun GalleryScreen(
             }
         )
     }
+    } // end Box overlay
 }

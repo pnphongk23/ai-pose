@@ -15,12 +15,22 @@ target 'iosApp' do
         flags << '-lsqlite3' unless flags.include?('-lsqlite3')
         config.build_settings['OTHER_LDFLAGS'] = flags
 
-        # Swift 6 sendability compatibility for Mijick pods
-        if ['MijickCamera', 'MijickTimer'].include?(target.name)
-          config.build_settings['SWIFT_VERSION'] = '5.9'
-          config.build_settings['SWIFT_STRICT_CONCURRENCY'] = 'minimal'
+        # Disable Swift 6 strict concurrency via compiler flag (overrides xcconfig)
+        config.build_settings['SWIFT_STRICT_CONCURRENCY'] = 'minimal'
+        other_swift_flags = config.build_settings['OTHER_SWIFT_FLAGS'] || '$(inherited)'
+        unless other_swift_flags.include?('-strict-concurrency=minimal')
+          config.build_settings['OTHER_SWIFT_FLAGS'] = "#{other_swift_flags} -strict-concurrency=minimal"
         end
+        config.build_settings['SWIFT_VERSION'] = '5.9' if target.name.start_with?('Mijick')
       end
+    end
+
+    # Patch MijickCamera: add @MainActor to protocol extensions that call @MainActor CameraManager
+    mijick_screen = File.join(installer.sandbox.root, 'MijickCamera/Sources/Public/UI/Public+UI+MCameraScreen.swift')
+    if File.exist?(mijick_screen)
+      content = File.read(mijick_screen)
+      patched = content.gsub(/^public extension MCameraScreen \{/, '@MainActor public extension MCameraScreen {')
+      File.write(mijick_screen, patched) if content != patched
     end
 
     installer.aggregate_targets.each do |aggregate_target|
@@ -33,20 +43,5 @@ target 'iosApp' do
       end
       aggregate_target.user_project.save
     end
-  end
-end
-
-post_install do |installer|
-  installer.aggregate_targets.each do |aggregate_target|
-    aggregate_target.user_project.native_targets.each do |target|
-      target.build_configurations.each do |config|
-        flags = config.build_settings['OTHER_LDFLAGS'] || ['$(inherited)']
-        flags = [flags] if flags.is_a?(String)
-        next if flags.any? { |flag| flag.include?('-lsqlite3') }
-
-        config.build_settings['OTHER_LDFLAGS'] = flags + ['-lsqlite3']
-      end
-    end
-    aggregate_target.user_project.save
   end
 end

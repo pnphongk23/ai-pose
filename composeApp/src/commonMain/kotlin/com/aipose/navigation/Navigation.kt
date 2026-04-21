@@ -109,6 +109,7 @@ class GalleryListScreen : Screen {
         GalleryScreen(
             viewModel = remember { GalleryViewModel() },
             onOpenCamera = { tabNavigator.current = CameraTab },
+            onBack = { tabNavigator.current = CameraTab },
         )
     }
 }
