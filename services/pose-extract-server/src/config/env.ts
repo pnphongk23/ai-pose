@@ -5,6 +5,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_PATH: z.string().min(1),
   ADMIN_SECRET: z.string().min(1),
+  COMMUNITY_UPLOAD_DIR: z.string().min(1).default("data/community"),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10)
 });
@@ -23,6 +24,7 @@ export function getEnv(overrides?: Record<string, string | undefined>): AppEnv {
     PORT: overrides?.PORT ?? process.env.PORT,
     DATABASE_PATH: overrides?.DATABASE_PATH ?? process.env.DATABASE_PATH,
     ADMIN_SECRET: overrides?.ADMIN_SECRET ?? process.env.ADMIN_SECRET,
+    COMMUNITY_UPLOAD_DIR: overrides?.COMMUNITY_UPLOAD_DIR ?? process.env.COMMUNITY_UPLOAD_DIR,
     RATE_LIMIT_WINDOW_MS: overrides?.RATE_LIMIT_WINDOW_MS ?? process.env.RATE_LIMIT_WINDOW_MS,
     RATE_LIMIT_MAX: overrides?.RATE_LIMIT_MAX ?? process.env.RATE_LIMIT_MAX
   });

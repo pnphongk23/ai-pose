@@ -96,4 +96,27 @@ describe("getEnv", () => {
       })
     ).toThrowError(/Invalid environment variables/);
   });
+
+  it("parses COMMUNITY_UPLOAD_DIR", () => {
+    resetEnvCache();
+    const env = getEnv({
+      DATABASE_PATH: "/tmp/test.db",
+      ADMIN_SECRET: "secret",
+      COMMUNITY_UPLOAD_DIR: "/tmp/community",
+    });
+
+    expect(env.COMMUNITY_UPLOAD_DIR).toBe("/tmp/community");
+    resetEnvCache();
+  });
+
+  it("defaults COMMUNITY_UPLOAD_DIR to data/community", () => {
+    resetEnvCache();
+    const env = getEnv({
+      DATABASE_PATH: "/tmp/test.db",
+      ADMIN_SECRET: "secret",
+    });
+
+    expect(env.COMMUNITY_UPLOAD_DIR).toBe("data/community");
+    resetEnvCache();
+  });
 });
