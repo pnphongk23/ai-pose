@@ -49,4 +49,37 @@ describe("createDatabase", () => {
     expect(tables).toHaveLength(1);
     db.close();
   });
+
+  it("community_poses has correct defaults and constraints", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "pose-schema-constraints-"));
+    tempDirs.push(tempDir);
+
+    const db = createDatabase(path.join(tempDir, "test.db"));
+
+    // Insert with minimal fields — should apply defaults
+    db.prepare(
+      "INSERT INTO community_poses (id, name, image_path) VALUES ('test-1', 'Test Pose', 'community/test.png')"
+    ).run();
+
+    const row = db.prepare("SELECT * FROM community_poses WHERE id = 'test-1'").get() as {
+      status: string;
+      download_count: number;
+      tags: string;
+      body_parts: string;
+    };
+
+    expect(row.status).toBe("draft");
+    expect(row.download_count).toBe(0);
+    expect(row.tags).toBe("[]");
+    expect(row.body_parts).toBe("[]");
+
+    // Invalid status should fail CHECK constraint
+    expect(() => {
+      db.prepare(
+        "INSERT INTO community_poses (id, name, image_path, status) VALUES ('test-2', 'Bad', 'path', 'invalid')"
+      ).run();
+    }).toThrow();
+
+    db.close();
+  });
 });
