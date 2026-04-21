@@ -31,10 +31,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} h-full`}>
-      <body className="h-full overflow-hidden font-sans antialiased bg-bg-primary text-text-primary">
-        <div className="h-full w-full max-w-[430px] mx-auto relative overflow-hidden">
-          {children}
-        </div>
+      <body className="h-full font-sans antialiased bg-bg-primary text-text-primary">
+        {children}
       </body>
     </html>
   );

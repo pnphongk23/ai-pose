@@ -61,6 +61,22 @@ export function createAdminCommunityRoutes(options: CreateAdminCommunityRoutesOp
   const auth = createAdminAuthMiddleware(adminSecret);
   const router = Router();
 
+  // GET all poses (draft + published) for admin
+  router.get("/", auth, (req, res) => {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 50));
+    const status = (req.query.status as string) === "draft" ? "draft" : "published";
+    const allStatuses: Array<"draft" | "published"> = ["draft", "published"];
+    const results = allStatuses.flatMap((s) =>
+      communityStore.listPoses({ status: s, page: 1, limit: 200 }).poses
+    );
+    // sort by uploadedAt desc
+    results.sort((a, b) => (a.uploadedAt < b.uploadedAt ? 1 : -1));
+    const offset = (page - 1) * limit;
+    const paginated = results.slice(offset, offset + limit);
+    res.json({ data: paginated, pagination: { page, limit, total: results.length } });
+  });
+
   router.post("/", auth, upload.single("image"), (req, res) => {
     if (!req.file) {
       res.status(400).json({ error: { code: "BAD_REQUEST", message: "image file is required" } });
