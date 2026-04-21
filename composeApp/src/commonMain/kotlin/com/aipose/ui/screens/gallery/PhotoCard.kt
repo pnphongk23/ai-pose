@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.aipose.Photo
+import com.aipose.ui.components.NeoBrutalismContainer
 import com.aipose.ui.components.cardChrome
 import com.aipose.ui.components.neoBorder
 import com.aipose.ui.components.neoShadow
@@ -51,19 +52,19 @@ fun PhotoCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .semantics { testTag = "gallery-photo-item" },
         verticalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
-        Box(
+        NeoBrutalismContainer(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 12.dp)
-                .background(AiPoseColors.Surface, RoundedCornerShape(12.dp))
-                .neoBorder(width = 2.dp, cornerRadius = 12.dp)
                 .clip(RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
+            shape = RoundedCornerShape(12.dp),
+            backgroundColor = AiPoseColors.Surface,
+            shadowOffset = 2.dp,
+            borderWidth = 2.dp,
+            onClick = onClick
         ) {
             val resolvedPath = remember(photo.imagePath) { resolveImagePath(photo.imagePath) }
             if (resolvedPath != null) {

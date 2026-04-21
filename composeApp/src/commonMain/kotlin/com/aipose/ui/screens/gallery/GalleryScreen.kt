@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import com.aipose.ui.components.PrimaryButton
 import com.aipose.ui.components.SectionHeader
+import com.aipose.ui.components.NeoBrutalismContainer
 import com.aipose.ui.components.cardChrome
 import com.aipose.ui.components.neoBorder
 import com.aipose.ui.components.neoShadow
@@ -96,16 +97,15 @@ fun GalleryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (onBack != null) {
-                        Box(
+                        NeoBrutalismContainer(
                             modifier = Modifier
                                 .semantics { testTag = "gallery-back-btn" }
-                                .size(32.dp)
-                                .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 10.dp)
-                                .background(AiPoseColors.Background, RoundedCornerShape(10.dp))
-                                .neoBorder(width = 2.dp, cornerRadius = 10.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable { onBack() },
-                            contentAlignment = Alignment.Center
+                                .size(32.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            backgroundColor = AiPoseColors.Background,
+                            shadowOffset = 2.dp,
+                            borderWidth = 2.dp,
+                            onClick = onBack
                         ) {
                             Icon(
                                 painter = painterResource(Res.drawable.ic_chevron_left),
@@ -130,19 +130,15 @@ fun GalleryScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val isGrid = uiState.viewMode == ViewMode.GRID
-                    Box(
+                    NeoBrutalismContainer(
                         modifier = Modifier
                             .semantics { testTag = "gallery-grid-toggle" }
-                            .size(32.dp)
-                            .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 10.dp)
-                            .background(
-                                color = if (isGrid) AiPoseColors.AccentBlue else AiPoseColors.Background,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .neoBorder(width = 2.dp, cornerRadius = 10.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { if (!isGrid) viewModel.toggleViewMode() },
-                        contentAlignment = Alignment.Center
+                            .size(32.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        backgroundColor = if (isGrid) AiPoseColors.AccentBlue else AiPoseColors.Background,
+                        shadowOffset = 2.dp,
+                        borderWidth = 2.dp,
+                        onClick = { if (!isGrid) viewModel.toggleViewMode() }
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_layout_grid),
@@ -153,19 +149,15 @@ fun GalleryScreen(
                     }
 
                     val isList = uiState.viewMode == ViewMode.LIST
-                    Box(
+                    NeoBrutalismContainer(
                         modifier = Modifier
                             .semantics { testTag = "gallery-list-toggle" }
-                            .size(32.dp)
-                            .neoShadow(offsetX = 2.dp, offsetY = 2.dp, cornerRadius = 10.dp)
-                            .background(
-                                color = if (isList) AiPoseColors.AccentBlue else AiPoseColors.Background,
-                                shape = RoundedCornerShape(10.dp)
-                            )
-                            .neoBorder(width = 2.dp, cornerRadius = 10.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable { if (!isList) viewModel.toggleViewMode() },
-                        contentAlignment = Alignment.Center
+                            .size(32.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        backgroundColor = if (isList) AiPoseColors.AccentBlue else AiPoseColors.Background,
+                        shadowOffset = 2.dp,
+                        borderWidth = 2.dp,
+                        onClick = { if (!isList) viewModel.toggleViewMode() }
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_list),
