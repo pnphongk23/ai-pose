@@ -8,12 +8,23 @@ import { z } from "zod";
 import { createAdminAuthMiddleware } from "../middleware/adminAuth";
 import type { CommunityStore } from "../db/communityStore";
 
+function parseJsonArray(val: string): string[] {
+  if (!val || val.trim() === "") return [];
+  try {
+    const parsed = JSON.parse(val);
+    if (Array.isArray(parsed)) return parsed.map(String);
+  } catch {
+    // fallback: comma-separated plain text
+  }
+  return val.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 const metadataSchema = z.object({
   name: z.string().trim().min(1),
-  tags: z.string().transform((val) => JSON.parse(val) as string[]).pipe(z.array(z.string())),
+  tags: z.string().optional().default("").transform(parseJsonArray),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]).nullable().optional(),
   description: z.string().optional().nullable(),
-  bodyParts: z.string().transform((val) => JSON.parse(val) as string[]).pipe(z.array(z.string())),
+  bodyParts: z.string().optional().default("").transform(parseJsonArray),
   status: z.enum(["draft", "published"]).default("draft"),
 });
 

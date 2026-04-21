@@ -27,7 +27,7 @@ export default function AdminCommunityPage() {
     difficulty: 'beginner',
     bodyParts: '',
     description: '',
-    status: 'active',
+    status: 'draft',
   });
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -104,7 +104,7 @@ export default function AdminCommunityPage() {
         difficulty: 'beginner',
         bodyParts: '',
         description: '',
-        status: 'active',
+        status: 'draft',
       });
       setSelectedFile(null);
       setImagePreview('');
