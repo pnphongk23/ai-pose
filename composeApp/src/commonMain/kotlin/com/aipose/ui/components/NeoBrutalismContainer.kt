@@ -56,13 +56,19 @@ fun NeoBrutalismContainer(
         )
     } else Modifier
 
-    Box(modifier = modifier.then(clickableModifier)) {
-        // Shadow layer – behind content via zIndex
+    Box(
+        modifier = modifier.then(clickableModifier),
+        propagateMinConstraints = true
+    ) {
+        // Shadow layer – behind content via zIndex & matching graphicsLayer context
         if (hasShadow) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .offset(x = shadowOffset, y = shadowOffset)
+                    .graphicsLayer {
+                        translationX = shadowOffset.toPx()
+                        translationY = shadowOffset.toPx()
+                    }
                     .background(shadowColor, shape)
                     .zIndex(-1f)
             )
