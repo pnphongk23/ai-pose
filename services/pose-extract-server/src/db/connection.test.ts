@@ -35,4 +35,18 @@ describe("createDatabase", () => {
     expect(tables.map((table) => table.name)).toContain("request_logs");
     expect(sentinelRow?.id).toBe(1);
   });
+
+  it("creates community_poses table", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "pose-schema-"));
+    tempDirs.push(tempDir);
+
+    const db = createDatabase(path.join(tempDir, "test.db"));
+
+    const tables = db
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='community_poses'")
+      .all();
+
+    expect(tables).toHaveLength(1);
+    db.close();
+  });
 });
