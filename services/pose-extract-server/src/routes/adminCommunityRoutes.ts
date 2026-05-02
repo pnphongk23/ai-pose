@@ -2,7 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 
 import { createAdminAuthMiddleware } from "../middleware/adminAuth";
-import { buildPublicUrl, type UploadUrlPayload } from "../services/r2Storage";
+import { buildPublicUrl } from "../services/r2Storage";
+import type { UploadUrlPayload } from "../services/r2Storage";
 import type { CommunityStore } from "../db/communityStore";
 
 const ALLOWED_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);

@@ -1,22 +1,21 @@
-import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@aws-sdk/s3-presigned-post", () => ({
-  createPresignedPost: vi.fn()
+vi.mock("@aws-sdk/s3-request-presigner", () => ({
+  getSignedUrl: vi.fn()
 }));
-
-// mockSend is stable across tests — we only reset calls/implementation per test
-const mockSend = vi.fn();
 
 vi.mock("@aws-sdk/client-s3", () => {
   const send = vi.fn();
-  // We'll replace the reference in beforeEach via the captured mockSend
   return {
     S3Client: function S3Client() {
       return { send };
     },
     HeadObjectCommand: function HeadObjectCommand(input: unknown) {
+      return { input };
+    },
+    PutObjectCommand: function PutObjectCommand(input: unknown) {
       return { input };
     }
   };
@@ -34,14 +33,13 @@ vi.mock("../config/env", () => ({
 
 import { buildPublicUrl, createUploadUrl, objectExists } from "./r2Storage";
 
-// Get a reference to the stubbed send so we can control it per-test
 const s3Module = await vi.importMock<typeof import("@aws-sdk/client-s3")>("@aws-sdk/client-s3");
 const stubClient = new s3Module.S3Client({} as never);
 const stubSend = vi.mocked(stubClient.send);
 
 describe("r2Storage", () => {
   beforeEach(() => {
-    vi.mocked(createPresignedPost).mockReset();
+    vi.mocked(getSignedUrl).mockReset();
     stubSend.mockReset();
   });
 
@@ -60,17 +58,13 @@ describe("r2Storage", () => {
   });
 
   describe("createUploadUrl", () => {
-    it("returns uploadUrl, fileKey, and fields from presigned POST", async () => {
-      vi.mocked(createPresignedPost).mockResolvedValue({
-        url: "https://upload.example.com",
-        fields: { key: "community/test.png", "Content-Type": "image/png" }
-      });
+    it("returns uploadUrl and fileKey from presigned PUT", async () => {
+      vi.mocked(getSignedUrl).mockResolvedValue("https://upload.example.com/signed");
 
       const payload = await createUploadUrl({ fileName: "test.png", mimeType: "image/png" });
 
-      expect(payload.uploadUrl).toBe("https://upload.example.com");
+      expect(payload.uploadUrl).toBe("https://upload.example.com/signed");
       expect(payload.fileKey).toMatch(/^community\/.+\.png$/);
-      expect(payload.fields).toMatchObject({ "Content-Type": "image/png" });
     });
   });
 

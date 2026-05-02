@@ -1,15 +1,15 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 
-import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { HeadObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { getEnv } from "../config/env";
 
 export interface UploadUrlPayload {
   uploadUrl: string;
   fileKey: string;
-  fields: Record<string, string>;
 }
 
 export function getR2Client(): S3Client {
@@ -32,21 +32,15 @@ export async function createUploadUrl(input: {
   const ext = path.extname(input.fileName) || ".bin";
   const fileKey = `community/${randomUUID()}${ext.toLowerCase()}`;
 
-  const signed = await createPresignedPost(getR2Client(), {
+  const command = new PutObjectCommand({
     Bucket: env.R2_BUCKET,
     Key: fileKey,
-    Conditions: [["content-length-range", 1, 10 * 1024 * 1024], ["eq", "$Content-Type", input.mimeType]],
-    Fields: {
-      "Content-Type": input.mimeType
-    },
-    Expires: 60
+    ContentType: input.mimeType
   });
 
-  return {
-    uploadUrl: signed.url,
-    fileKey,
-    fields: signed.fields
-  };
+  const uploadUrl = await getSignedUrl(getR2Client(), command, { expiresIn: 60 });
+
+  return { uploadUrl, fileKey };
 }
 
 export async function objectExists(fileKey: string): Promise<boolean> {
