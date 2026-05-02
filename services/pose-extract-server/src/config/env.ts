@@ -7,7 +7,12 @@ const envSchema = z.object({
   ADMIN_SECRET: z.string().min(1),
   COMMUNITY_UPLOAD_DIR: z.string().min(1).default("data/community"),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
-  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10)
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  R2_ACCOUNT_ID: z.string().min(1),
+  R2_ACCESS_KEY_ID: z.string().min(1),
+  R2_SECRET_ACCESS_KEY: z.string().min(1),
+  R2_BUCKET: z.string().min(1),
+  R2_PUBLIC_URL: z.string().url()
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
@@ -26,7 +31,12 @@ export function getEnv(overrides?: Record<string, string | undefined>): AppEnv {
     ADMIN_SECRET: overrides?.ADMIN_SECRET ?? process.env.ADMIN_SECRET,
     COMMUNITY_UPLOAD_DIR: overrides?.COMMUNITY_UPLOAD_DIR ?? process.env.COMMUNITY_UPLOAD_DIR,
     RATE_LIMIT_WINDOW_MS: overrides?.RATE_LIMIT_WINDOW_MS ?? process.env.RATE_LIMIT_WINDOW_MS,
-    RATE_LIMIT_MAX: overrides?.RATE_LIMIT_MAX ?? process.env.RATE_LIMIT_MAX
+    RATE_LIMIT_MAX: overrides?.RATE_LIMIT_MAX ?? process.env.RATE_LIMIT_MAX,
+    R2_ACCOUNT_ID: overrides?.R2_ACCOUNT_ID ?? process.env.R2_ACCOUNT_ID,
+    R2_ACCESS_KEY_ID: overrides?.R2_ACCESS_KEY_ID ?? process.env.R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY: overrides?.R2_SECRET_ACCESS_KEY ?? process.env.R2_SECRET_ACCESS_KEY,
+    R2_BUCKET: overrides?.R2_BUCKET ?? process.env.R2_BUCKET,
+    R2_PUBLIC_URL: overrides?.R2_PUBLIC_URL ?? process.env.R2_PUBLIC_URL
   });
 
   if (!parsed.success) {

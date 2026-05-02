@@ -8,7 +8,12 @@ const originalEnv = {
   DATABASE_PATH: process.env.DATABASE_PATH,
   ADMIN_SECRET: process.env.ADMIN_SECRET,
   RATE_LIMIT_WINDOW_MS: process.env.RATE_LIMIT_WINDOW_MS,
-  RATE_LIMIT_MAX: process.env.RATE_LIMIT_MAX
+  RATE_LIMIT_MAX: process.env.RATE_LIMIT_MAX,
+  R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+  R2_ACCESS_KEY_ID: process.env.R2_ACCESS_KEY_ID,
+  R2_SECRET_ACCESS_KEY: process.env.R2_SECRET_ACCESS_KEY,
+  R2_BUCKET: process.env.R2_BUCKET,
+  R2_PUBLIC_URL: process.env.R2_PUBLIC_URL
 };
 
 beforeEach(() => {
@@ -51,6 +56,21 @@ afterEach(() => {
   } else {
     process.env.RATE_LIMIT_MAX = originalEnv.RATE_LIMIT_MAX;
   }
+
+  const r2Keys = [
+    "R2_ACCOUNT_ID",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "R2_BUCKET",
+    "R2_PUBLIC_URL"
+  ] as const;
+  for (const key of r2Keys) {
+    if (originalEnv[key] === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = originalEnv[key];
+    }
+  }
 });
 
 describe("getEnv", () => {
@@ -59,6 +79,11 @@ describe("getEnv", () => {
     delete process.env.PORT;
     process.env.DATABASE_PATH = "./data/defaults.db";
     process.env.ADMIN_SECRET = "secret-value";
+    process.env.R2_ACCOUNT_ID = "account-id";
+    process.env.R2_ACCESS_KEY_ID = "access-key-id";
+    process.env.R2_SECRET_ACCESS_KEY = "secret-access-key";
+    process.env.R2_BUCKET = "pose-bucket";
+    process.env.R2_PUBLIC_URL = "https://cdn.example.com";
 
     const env = getEnv();
 
@@ -68,6 +93,11 @@ describe("getEnv", () => {
     expect(env.ADMIN_SECRET).toBe("secret-value");
     expect(env.RATE_LIMIT_WINDOW_MS).toBe(60_000);
     expect(env.RATE_LIMIT_MAX).toBe(10);
+    expect(env.R2_ACCOUNT_ID).toBe("account-id");
+    expect(env.R2_ACCESS_KEY_ID).toBe("access-key-id");
+    expect(env.R2_SECRET_ACCESS_KEY).toBe("secret-access-key");
+    expect(env.R2_BUCKET).toBe("pose-bucket");
+    expect(env.R2_PUBLIC_URL).toBe("https://cdn.example.com");
   });
 
   it("reads NODE_ENV and PORT from current process env", () => {
@@ -77,6 +107,11 @@ describe("getEnv", () => {
     process.env.ADMIN_SECRET = "prod-secret";
     process.env.RATE_LIMIT_WINDOW_MS = "120000";
     process.env.RATE_LIMIT_MAX = "25";
+    process.env.R2_ACCOUNT_ID = "prod-account-id";
+    process.env.R2_ACCESS_KEY_ID = "prod-access-key-id";
+    process.env.R2_SECRET_ACCESS_KEY = "prod-secret-access-key";
+    process.env.R2_BUCKET = "prod-pose-bucket";
+    process.env.R2_PUBLIC_URL = "https://cdn.prod.example.com";
 
     const env = getEnv();
 
@@ -86,13 +121,23 @@ describe("getEnv", () => {
     expect(env.ADMIN_SECRET).toBe("prod-secret");
     expect(env.RATE_LIMIT_WINDOW_MS).toBe(120000);
     expect(env.RATE_LIMIT_MAX).toBe(25);
+    expect(env.R2_ACCOUNT_ID).toBe("prod-account-id");
+    expect(env.R2_ACCESS_KEY_ID).toBe("prod-access-key-id");
+    expect(env.R2_SECRET_ACCESS_KEY).toBe("prod-secret-access-key");
+    expect(env.R2_BUCKET).toBe("prod-pose-bucket");
+    expect(env.R2_PUBLIC_URL).toBe("https://cdn.prod.example.com");
   });
 
   it("throws on invalid environment variables", () => {
     expect(() =>
       getEnv({
         ADMIN_SECRET: "",
-        DATABASE_PATH: ""
+        DATABASE_PATH: "",
+        R2_ACCOUNT_ID: "",
+        R2_ACCESS_KEY_ID: "",
+        R2_SECRET_ACCESS_KEY: "",
+        R2_BUCKET: "",
+        R2_PUBLIC_URL: "not-a-url"
       })
     ).toThrowError(/Invalid environment variables/);
   });
@@ -103,6 +148,11 @@ describe("getEnv", () => {
       DATABASE_PATH: "/tmp/test.db",
       ADMIN_SECRET: "secret",
       COMMUNITY_UPLOAD_DIR: "/tmp/community",
+      R2_ACCOUNT_ID: "account-id",
+      R2_ACCESS_KEY_ID: "access-key-id",
+      R2_SECRET_ACCESS_KEY: "secret-access-key",
+      R2_BUCKET: "pose-bucket",
+      R2_PUBLIC_URL: "https://cdn.example.com"
     });
 
     expect(env.COMMUNITY_UPLOAD_DIR).toBe("/tmp/community");
@@ -114,9 +164,72 @@ describe("getEnv", () => {
     const env = getEnv({
       DATABASE_PATH: "/tmp/test.db",
       ADMIN_SECRET: "secret",
+      R2_ACCOUNT_ID: "account-id",
+      R2_ACCESS_KEY_ID: "access-key-id",
+      R2_SECRET_ACCESS_KEY: "secret-access-key",
+      R2_BUCKET: "pose-bucket",
+      R2_PUBLIC_URL: "https://cdn.example.com"
     });
 
     expect(env.COMMUNITY_UPLOAD_DIR).toBe("data/community");
     resetEnvCache();
+  });
+
+  const r2BaseOverrides = {
+    DATABASE_PATH: "/tmp/test.db",
+    ADMIN_SECRET: "secret",
+    R2_ACCOUNT_ID: "account-id",
+    R2_ACCESS_KEY_ID: "access-key-id",
+    R2_SECRET_ACCESS_KEY: "secret-access-key",
+    R2_BUCKET: "pose-bucket",
+    R2_PUBLIC_URL: "https://cdn.example.com"
+  };
+
+  it("parses all R2 env vars correctly", () => {
+    resetEnvCache();
+    const env = getEnv(r2BaseOverrides);
+
+    expect(env.R2_ACCOUNT_ID).toBe("account-id");
+    expect(env.R2_ACCESS_KEY_ID).toBe("access-key-id");
+    expect(env.R2_SECRET_ACCESS_KEY).toBe("secret-access-key");
+    expect(env.R2_BUCKET).toBe("pose-bucket");
+    expect(env.R2_PUBLIC_URL).toBe("https://cdn.example.com");
+    resetEnvCache();
+  });
+
+  it("throws when R2_ACCOUNT_ID is missing", () => {
+    expect(() =>
+      getEnv({ ...r2BaseOverrides, R2_ACCOUNT_ID: undefined })
+    ).toThrowError(/Invalid environment variables/);
+  });
+
+  it("throws when R2_ACCESS_KEY_ID is missing", () => {
+    expect(() =>
+      getEnv({ ...r2BaseOverrides, R2_ACCESS_KEY_ID: undefined })
+    ).toThrowError(/Invalid environment variables/);
+  });
+
+  it("throws when R2_SECRET_ACCESS_KEY is missing", () => {
+    expect(() =>
+      getEnv({ ...r2BaseOverrides, R2_SECRET_ACCESS_KEY: undefined })
+    ).toThrowError(/Invalid environment variables/);
+  });
+
+  it("throws when R2_BUCKET is missing", () => {
+    expect(() =>
+      getEnv({ ...r2BaseOverrides, R2_BUCKET: undefined })
+    ).toThrowError(/Invalid environment variables/);
+  });
+
+  it("throws when R2_PUBLIC_URL is missing", () => {
+    expect(() =>
+      getEnv({ ...r2BaseOverrides, R2_PUBLIC_URL: undefined })
+    ).toThrowError(/Invalid environment variables/);
+  });
+
+  it("throws when R2_PUBLIC_URL is not a valid URL", () => {
+    expect(() =>
+      getEnv({ ...r2BaseOverrides, R2_PUBLIC_URL: "not-a-valid-url" })
+    ).toThrowError(/Invalid environment variables/);
   });
 });

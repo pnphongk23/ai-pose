@@ -6,6 +6,7 @@ import { createAdminRoutes } from "./routes/adminRoutes";
 import { createExtractPoseRoutes } from "./routes/extractPoseRoutes";
 import { createCommunityRoutes } from "./routes/communityRoutes";
 import { createAdminCommunityRoutes } from "./routes/adminCommunityRoutes";
+import { createUploadUrl, objectExists } from "./services/r2Storage";
 import { AppError } from "./services/errors";
 import type { KeyPoolManager } from "./services/keyPoolManager";
 import type { KeyStore } from "./services/keyStore";
@@ -95,13 +96,15 @@ export function createApp(options: CreateAppOptions): express.Express {
   }
 
   // Admin community routes
-  if (options.adminSecret && options.communityStore && options.communityUploadDir) {
+  if (options.adminSecret && options.communityStore) {
     app.use(
       "/api/admin/community/poses",
       createAdminCommunityRoutes({
         adminSecret: options.adminSecret,
         communityStore: options.communityStore,
-        uploadDir: options.communityUploadDir,
+        r2PublicUrl: process.env.R2_PUBLIC_URL ?? "",
+        createUploadUrl,
+        objectExists,
       })
     );
   }
