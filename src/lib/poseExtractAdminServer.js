@@ -12,8 +12,26 @@ function getAdminConfig() {
     throw new Error('Missing POSE_EXTRACT_ADMIN_SECRET (or ADMIN_SECRET fallback)');
   }
 
+  const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+  const currentPort = process.env.PORT || '3000';
+
+  try {
+    const parsed = new URL(normalizedBaseUrl);
+    const isLocalhost = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1';
+    const targetPort = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+
+    if (isLocalhost && targetPort === currentPort) {
+      throw new Error(`POSE_EXTRACT_SERVER_URL points to current Next server (${parsed.origin})`);
+    }
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error('Invalid POSE_EXTRACT_SERVER_URL');
+    }
+    throw error;
+  }
+
   return {
-    baseUrl: baseUrl.replace(/\/+$/, ''),
+    baseUrl: normalizedBaseUrl,
     adminSecret,
   };
 }

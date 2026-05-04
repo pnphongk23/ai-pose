@@ -11,8 +11,7 @@ const STATUS_BADGE = {
   published: 'bg-accent-green',
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_POSE_SERVER_URL ?? 'http://localhost:3000';
-const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET ?? '';
+const COMMUNITY_ADMIN_API = '/api/admin/community/poses';
 
 async function parseResponse(response) {
   const payload = await response.json().catch(() => ({}));
@@ -43,8 +42,8 @@ export default function AdminCommunityPage() {
   const fetchPoses = useCallback(async () => {
     setLoadingPoses(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/admin/community/poses?limit=100`, {
-        headers: { Authorization: `Bearer ${ADMIN_SECRET}` },
+      const res = await fetch(`${COMMUNITY_ADMIN_API}?limit=100`, {
+        cache: 'no-store',
       });
       const payload = await res.json().catch(() => ({}));
       if (res.ok) setPoses(payload.data ?? []);
@@ -80,19 +79,26 @@ export default function AdminCommunityPage() {
     setNotice('');
 
     try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-      formData.append('name', form.name);
-      formData.append('tags', form.tags);
-      formData.append('difficulty', form.difficulty);
-      formData.append('bodyParts', form.bodyParts);
-      formData.append('description', form.description);
-      formData.append('status', form.status);
+      const normalizeList = (raw) =>
+        raw
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
 
-      const response = await fetch(`${BASE_URL}/api/admin/community/poses`, {
+      const payload = {
+        name: form.name,
+        fileKey: selectedFile.name,
+        tags: normalizeList(form.tags),
+        difficulty: form.difficulty,
+        bodyParts: normalizeList(form.bodyParts),
+        description: form.description || null,
+        status: form.status,
+      };
+
+      const response = await fetch(COMMUNITY_ADMIN_API, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${ADMIN_SECRET}` },
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       await parseResponse(response);
@@ -239,7 +245,7 @@ export default function AdminCommunityPage() {
                     <div className="aspect-square bg-gray-100 overflow-hidden">
                       {pose.imagePath ? (
                         <img
-                          src={`${BASE_URL}/${pose.imagePath}`}
+                          src={pose.imagePath}
                           alt={pose.name}
                           className="w-full h-full object-cover"
                         />

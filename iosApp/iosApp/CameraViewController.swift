@@ -247,7 +247,11 @@ final class CameraViewController: UIViewController {
     }
 
     func capture() {
+#if targetEnvironment(simulator)
+        AIPoseCameraBridgeRuntime.postCapturedImage(bridgeId: bridgeId, data: Data())
+#else
         bridgeModel.capture()
+#endif
     }
 
     func switchCamera() {
@@ -345,6 +349,9 @@ private struct CameraRootView: View {
         let onImageCaptured: (Data) -> Void
         
         var body: some View {
+#if targetEnvironment(simulator)
+            Color.black
+#else
             MCamera()
                 .setAudioAvailability(false)
                 .setCapturedMediaScreen(nil)
@@ -363,6 +370,7 @@ private struct CameraRootView: View {
                     }
                 }
                 .startSession()
+#endif
         }
     }
     

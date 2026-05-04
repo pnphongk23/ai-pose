@@ -23,6 +23,29 @@ data class ExtractPoseData(
 )
 
 @Serializable
+data class CommunityPose(
+    val id: String = "",
+    val name: String = "",
+    val imagePath: String = "",
+    val thumbnailPath: String? = null,
+    val difficulty: String = "",
+    val tags: List<String> = emptyList()
+)
+
+@Serializable
+data class PaginationInfo(
+    val page: Int,
+    val limit: Int,
+    val total: Int
+)
+
+@Serializable
+data class PaginatedResult<T>(
+    val data: List<T>,
+    val pagination: PaginationInfo
+)
+
+@Serializable
 private data class ApiErrorResponse(
     val code: String? = null,
     val message: String? = null

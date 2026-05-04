@@ -9,6 +9,7 @@ import com.aipose.data.remote.PaginatedResult
 import com.aipose.data.remote.PoseApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.Clock
 
 class PoseRepository(
     private val database: AiPoseDatabase,
@@ -28,6 +29,18 @@ class PoseRepository(
 
     suspend fun deletePose(id: Long) {
         queries.deletePose(id)
+    }
+
+    suspend fun insertPose(name: String, imagePath: String, isMine: Boolean = true) {
+        queries.insertPose(
+            name = name,
+            imagePath = imagePath,
+            thumbnailPath = null,
+            originalImagePath = null,
+            createdAt = Clock.System.now().toString(),
+            isMine = if (isMine) 1L else 0L,
+            likes = 0L
+        )
     }
 
     suspend fun getCommunityPoses(

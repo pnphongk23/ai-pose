@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createApp } from "./app";
 import { getEnv } from "./config/env";
 import { createDatabase } from "./db/connection";
