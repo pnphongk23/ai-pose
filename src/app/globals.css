@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../**/*.{js,jsx,ts,tsx,mdx}";
+@source not "../../.next/**/*";
+@source not "../../plans/**/*";
+@source not "../../docs/**/*";
 
 :root {
   --bg-primary: #f6f1e8;
