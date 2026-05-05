@@ -2,12 +2,12 @@ FROM node:20-bookworm-slim AS build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY web/services/pose-extract-server/package.json web/services/pose-extract-server/package-lock.json ./
 RUN npm ci
 
-COPY tsconfig.json vitest.config.ts ./
-COPY src ./src
-COPY scripts ./scripts
+COPY web/services/pose-extract-server/tsconfig.json web/services/pose-extract-server/vitest.config.ts ./
+COPY web/services/pose-extract-server/src ./src
+COPY web/services/pose-extract-server/scripts ./scripts
 
 RUN npm run build
 
@@ -21,7 +21,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
 RUN npx playwright install chromium
 
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY web/services/pose-extract-server/package.json web/services/pose-extract-server/package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist

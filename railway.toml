@@ -1,5 +1,6 @@
 [build]
 builder = "dockerfile"
+dockerfilePath = "web/services/pose-extract-server/Dockerfile"
 
 [deploy]
 numReplicas = 1
