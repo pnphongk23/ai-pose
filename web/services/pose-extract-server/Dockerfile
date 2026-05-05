@@ -30,4 +30,4 @@ RUN mkdir -p /app/data
 EXPOSE 3000
 
 # Start both API and Worker. wait -n ensures container exits if either process crashes.
-CMD ["sh", "-c", "node dist/index.js & node dist/worker/worker-main.js & wait -n"]
+CMD ["bash", "-c", "node dist/index.js & node dist/worker/worker-main.js & wait -n"]
