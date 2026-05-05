@@ -14,20 +14,20 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const contentType = request.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
+    if (!contentType.includes('multipart/form-data')) {
       return Response.json(
         {
-          error: 'Unsupported Content-Type. Use application/json for community metadata submission.',
+          error: 'Unsupported Content-Type. Use multipart/form-data for community pose submission.',
           code: 'BAD_REQUEST',
         },
         { status: 400 }
       );
     }
 
-    const body = await request.json();
+    const formData = await request.formData();
     const result = await callPoseExtractAdmin('/api/admin/community/poses', {
       method: 'POST',
-      body,
+      body: formData,
     });
 
     return Response.json(result.payload, { status: result.status });

@@ -1,20 +1,18 @@
 'use client';
 
 import { Heart } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { blobToUrl } from '@/lib/db';
 import Badge from './Badge';
 
 export default function PoseCard({ pose, onClick }) {
-  const [thumbUrl, setThumbUrl] = useState(null);
+  const thumbUrl = useMemo(() => pose.thumbnailBlob ? blobToUrl(pose.thumbnailBlob) : null, [pose.thumbnailBlob]);
 
   useEffect(() => {
-    if (pose.thumbnailBlob) {
-      const url = blobToUrl(pose.thumbnailBlob);
-      setThumbUrl(url);
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [pose.thumbnailBlob]);
+    return () => {
+      if (thumbUrl) URL.revokeObjectURL(thumbUrl);
+    };
+  }, [thumbUrl]);
 
   const badgeType = pose.isMine ? 'mine' : (pose.likes > 1000 ? 'hot' : 'new');
   const badgeLabel = pose.isMine ? 'MINE' : (pose.likes > 1000 ? 'HOT' : 'NEW');

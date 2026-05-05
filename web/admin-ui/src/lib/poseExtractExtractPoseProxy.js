@@ -3,15 +3,10 @@ const MAX_EXTRACT_PROXY_RESPONSE_BYTES = 25_000_000;
 
 function getPoseExtractServerBaseUrl() {
   const baseUrl = process.env.POSE_EXTRACT_SERVER_URL;
-  const adminSecret = process.env.POSE_EXTRACT_ADMIN_SECRET || process.env.ADMIN_SECRET;
-
   if (!baseUrl) {
     throw new Error('Missing POSE_EXTRACT_SERVER_URL');
   }
 
-  if (!adminSecret) {
-    throw new Error('Missing POSE_EXTRACT_ADMIN_SECRET (or ADMIN_SECRET fallback)');
-  }
 
   let parsedBaseUrl;
   try {

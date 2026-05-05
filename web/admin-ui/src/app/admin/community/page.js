@@ -85,20 +85,18 @@ export default function AdminCommunityPage() {
           .map((item) => item.trim())
           .filter(Boolean);
 
-      const payload = {
-        name: form.name,
-        fileKey: selectedFile.name,
-        tags: normalizeList(form.tags),
-        difficulty: form.difficulty,
-        bodyParts: normalizeList(form.bodyParts),
-        description: form.description || null,
-        status: form.status,
-      };
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+      formData.append('name', form.name.trim());
+      formData.append('tags', JSON.stringify(normalizeList(form.tags)));
+      formData.append('difficulty', form.difficulty);
+      formData.append('bodyParts', JSON.stringify(normalizeList(form.bodyParts)));
+      formData.append('description', form.description || '');
+      formData.append('status', form.status);
 
       const response = await fetch(COMMUNITY_ADMIN_API, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       await parseResponse(response);

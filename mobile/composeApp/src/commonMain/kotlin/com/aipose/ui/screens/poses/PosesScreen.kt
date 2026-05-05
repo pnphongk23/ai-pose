@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -16,7 +18,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,16 +27,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
+import ai_pose.composeapp.generated.resources.Res
+import ai_pose.composeapp.generated.resources.ic_chevron_left
 import coil3.compose.AsyncImage
 import com.aipose.Pose
 import com.aipose.data.AiPoseDatabase
 import com.aipose.data.AppConfig
 import com.aipose.data.DatabaseDriverFactory
 import com.aipose.data.PoseRepository
+import com.aipose.data.createDatabase
 import com.aipose.data.remote.CommunityPose
 import com.aipose.data.remote.PoseApiException
 import com.aipose.data.remote.PoseApiService
 import com.aipose.platform.ImagePicker
+import com.aipose.ui.components.NeoBrutalismContainer
 import com.aipose.ui.components.PrimaryButton
 import com.aipose.ui.components.SectionHeader
 import com.aipose.ui.components.TabSwitcher
@@ -82,7 +90,7 @@ private val sharedApiService: PoseApiService by lazy {
     PoseApiService(sharedHttpClient, AppConfig.SERVER_BASE_URL)
 }
 private val sharedDatabase: AiPoseDatabase by lazy {
-    AiPoseDatabase(DatabaseDriverFactory().createDriver())
+    createDatabase(DatabaseDriverFactory())
 }
 
 class PosesViewModel(
@@ -180,6 +188,7 @@ fun PosesScreen(
     onPoseClick: (Long) -> Unit,
     onExtractPoseClick: () -> Unit,
     onCommunityPoseClick: (CommunityPose) -> Unit = {},
+    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -199,6 +208,7 @@ fun PosesScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(Spacing.lg),
             verticalArrangement = Arrangement.spacedBy(Spacing.lg)
         ) {
@@ -207,21 +217,67 @@ fun PosesScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "POSES",
-                    style = AiPoseTypography.Heading1,
-                    color = AiPoseColors.Foreground
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
-                    IconButton(onClick = {
-                        imagePicker.pickImageFromGallery { bytes ->
-                            bytes?.let { viewModel.onPickImageResult(it) }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (onBack != null) {
+                        NeoBrutalismContainer(
+                            modifier = Modifier.size(32.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            backgroundColor = AiPoseColors.Background,
+                            shadowOffset = 2.dp,
+                            borderWidth = 2.dp,
+                            onClick = onBack
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.ic_chevron_left),
+                                contentDescription = "Back",
+                                tint = AiPoseColors.Foreground,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
-                    }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add pose")
+                    }
+                    Text(
+                        text = "POSES",
+                        style = AiPoseTypography.Heading1,
+                        color = AiPoseColors.Foreground
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    NeoBrutalismContainer(
+                        modifier = Modifier.size(32.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        backgroundColor = AiPoseColors.Background,
+                        shadowOffset = 2.dp,
+                        borderWidth = 2.dp,
+                        onClick = {}
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = AiPoseColors.Foreground,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    NeoBrutalismContainer(
+                        modifier = Modifier.size(32.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        backgroundColor = AiPoseColors.Background,
+                        shadowOffset = 2.dp,
+                        borderWidth = 2.dp,
+                        onClick = {
+                            imagePicker.pickImageFromGallery { bytes ->
+                                bytes?.let { viewModel.onPickImageResult(it) }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add pose",
+                            tint = AiPoseColors.Foreground,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }

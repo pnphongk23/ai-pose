@@ -21,7 +21,9 @@ export async function createPersistentBrowserSession(input: {
 
   options.args = [
     "--disable-blink-features=AutomationControlled",
-    "--disable-infobars"
+    "--disable-infobars",
+    "--no-sandbox",
+    "--disable-setuid-sandbox"
   ];
 
   return chromium.launchPersistentContext(input.profileDir, options);

@@ -170,38 +170,40 @@ fun CameraScreen(
             )
 
             // Overlays
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(AiPoseColors.SurfaceVariant.copy(alpha = 0.2f))
-            )
-
-            if (uiState.isGridVisible) {
-                CameraGridOverlay()
-            }
-            CenterCrosshair()
-
-            if (hasOverlay || effectiveOverlaySource is OverlaySourceState.PlaceholderAsset) {
-                OverlayPlaceholder(
+            if (false) {
+                Box(
                     modifier = Modifier
-                        .align(Alignment.Center)
-                        .offset {
-                            IntOffset(
-                                uiState.overlayOffset.x.roundToInt(),
-                                uiState.overlayOffset.y.roundToInt(),
-                            )
-                        }
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                uiState = uiState.copy(
-                                    overlayOffset = uiState.overlayOffset + pan,
-                                    overlayScale = (uiState.overlayScale * zoom).coerceIn(0.4f, 2.5f),
+                        .matchParentSize()
+                        .background(AiPoseColors.SurfaceVariant.copy(alpha = 0.2f))
+                )
+
+                if (uiState.isGridVisible) {
+                    CameraGridOverlay()
+                }
+                CenterCrosshair()
+
+                if (hasOverlay || effectiveOverlaySource is OverlaySourceState.PlaceholderAsset) {
+                    OverlayPlaceholder(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .offset {
+                                IntOffset(
+                                    uiState.overlayOffset.x.roundToInt(),
+                                    uiState.overlayOffset.y.roundToInt(),
                                 )
                             }
-                        }
-                        .alpha(uiState.overlayOpacity),
-                    scale = uiState.overlayScale,
-                )
+                            .pointerInput(Unit) {
+                                detectTransformGestures { _, pan, zoom, _ ->
+                                    uiState = uiState.copy(
+                                        overlayOffset = uiState.overlayOffset + pan,
+                                        overlayScale = (uiState.overlayScale * zoom).coerceIn(0.4f, 2.5f),
+                                    )
+                                }
+                            }
+                            .alpha(uiState.overlayOpacity),
+                        scale = uiState.overlayScale,
+                    )
+                }
             }
 
             // Top Right

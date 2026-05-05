@@ -1,0 +1,18 @@
+{
+  "name": "ai-pose-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix web/admin-ui run dev",
+    "build": "npm --prefix web/admin-ui run build",
+    "start": "npm --prefix web/admin-ui run start",
+    "lint": "npm --prefix web/admin-ui run lint",
+    "backend:dev": "npm --prefix web/services/pose-extract-server run dev",
+    "backend:build": "npm --prefix web/services/pose-extract-server run build",
+    "backend:start": "npm --prefix web/services/pose-extract-server run start",
+    "backend:test": "npm --prefix web/services/pose-extract-server run test"
+  },
+  "dependencies": {
+    "playwright": "^1.59.1"
+  }
+}

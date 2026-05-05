@@ -31,9 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
 import com.aipose.Pose
-import com.aipose.data.AiPoseDatabase
 import com.aipose.data.DatabaseDriverFactory
 import com.aipose.data.PoseRepository
+import com.aipose.data.createDatabase
 import com.aipose.ui.components.PrimaryButton
 import com.aipose.ui.theme.AiPoseColors
 import com.aipose.ui.theme.AiPoseTypography
@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 
 class PoseDetailViewModel(
     private val poseId: Long,
-    private val repository: PoseRepository = PoseRepository(AiPoseDatabase(DatabaseDriverFactory().createDriver()))
+    private val repository: PoseRepository = PoseRepository(createDatabase(DatabaseDriverFactory()))
 ) {
     private val _uiState = MutableStateFlow<PoseDetailUiState>(PoseDetailUiState.Loading)
     val uiState: StateFlow<PoseDetailUiState> = _uiState.asStateFlow()

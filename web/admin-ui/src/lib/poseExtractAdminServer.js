@@ -2,14 +2,14 @@ const DEFAULT_TIMEOUT_MS = 20000;
 
 function getAdminConfig() {
   const baseUrl = process.env.POSE_EXTRACT_SERVER_URL;
-  const adminSecret = process.env.POSE_EXTRACT_ADMIN_SECRET || process.env.ADMIN_SECRET;
+  const adminSecret = process.env.POSE_EXTRACT_ADMIN_SECRET;
 
   if (!baseUrl) {
     throw new Error('Missing POSE_EXTRACT_SERVER_URL');
   }
 
   if (!adminSecret) {
-    throw new Error('Missing POSE_EXTRACT_ADMIN_SECRET (or ADMIN_SECRET fallback)');
+    throw new Error('Missing POSE_EXTRACT_ADMIN_SECRET');
   }
 
   const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
@@ -38,22 +38,41 @@ function getAdminConfig() {
 
 export async function callPoseExtractAdmin(pathname, options = {}) {
   const { baseUrl, adminSecret } = getAdminConfig();
-  const { method = 'GET', body } = options;
+  const { method = 'GET', body, headers: customHeaders } = options;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${baseUrl}${pathname}`, {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+    const defaultHeaders = {
+      Authorization: `Bearer ${adminSecret}`,
+      ...(!isFormData && body ? { 'Content-Type': 'application/json' } : {}),
+    };
+    const fetchOptions = {
       method,
       headers: {
-        Authorization: `Bearer ${adminSecret}`,
-        ...(body ? { 'Content-Type': 'application/json' } : {}),
+        ...defaultHeaders,
+        ...(customHeaders || {}),
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
       cache: 'no-store',
       signal: controller.signal,
-    });
+    };
+
+    let response;
+    try {
+      response = await fetch(`${baseUrl}${pathname}`, fetchOptions);
+    } catch (error) {
+      if (!baseUrl.includes('localhost') && !baseUrl.includes('127.0.0.1')) {
+        throw error;
+      }
+
+      const fallbackBaseUrl = baseUrl.includes('localhost')
+        ? baseUrl.replace('localhost', '127.0.0.1')
+        : baseUrl.replace('127.0.0.1', 'localhost');
+      response = await fetch(`${fallbackBaseUrl}${pathname}`, fetchOptions);
+    }
 
     const rawText = await response.text();
     let payload = {};

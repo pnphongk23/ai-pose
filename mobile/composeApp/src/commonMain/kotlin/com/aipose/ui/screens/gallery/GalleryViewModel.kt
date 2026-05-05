@@ -1,9 +1,9 @@
 package com.aipose.ui.screens.gallery
 
 import com.aipose.Photo
-import com.aipose.data.AiPoseDatabase
 import com.aipose.data.DatabaseDriverFactory
 import com.aipose.data.PhotoRepository
+import com.aipose.data.createDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +21,7 @@ data class GalleryUiState(
 
 class GalleryViewModel(
     private val repository: PhotoRepository = PhotoRepository(
-        database = AiPoseDatabase(DatabaseDriverFactory().createDriver())
+        database = createDatabase(DatabaseDriverFactory())
     )
 ) {
     private val _uiState = MutableStateFlow(GalleryUiState())

@@ -118,10 +118,12 @@ class PosesListScreen : Screen {
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
+        val tabNavigator = LocalTabNavigator.current
         PosesScreen(
             viewModel = remember { PosesViewModel() },
             onPoseClick = { poseId -> navigator.push(PoseDetailVoyagerScreen(poseId)) },
-            onExtractPoseClick = {}
+            onExtractPoseClick = {},
+            onBack = { tabNavigator.current = CameraTab }
         )
     }
 }

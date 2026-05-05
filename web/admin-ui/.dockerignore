@@ -1,0 +1,12 @@
+.git
+.gitignore
+.next
+node_modules
+mobile
+web/services
+.agent
+.claude
+plans
+docs
+*.log
+error.log

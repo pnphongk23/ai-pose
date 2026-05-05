@@ -12,7 +12,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.sqldelight.runtime)
+            api(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
             implementation(libs.coroutines.core)
             implementation(libs.ktor.client.core)

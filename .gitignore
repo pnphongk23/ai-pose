@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+/web/admin-ui/node_modules
+/web/services/pose-extract-server/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -15,6 +17,8 @@
 
 # next.js
 /.next/
+/web/admin-ui/.next/
+/web/admin-ui/out/
 /out/
 
 # production
@@ -42,16 +46,16 @@ yarn-error.log*
 next-env.d.ts
 
 # Kotlin Multiplatform / Gradle
-composeApp/build/
-shared/build/
+mobile/composeApp/build/
+mobile/shared/build/
 *.iml
 .idea/
 local.properties
 
 # iOS / CocoaPods / Xcode
-iosApp/Pods/
-iosApp/*.xcworkspace/xcuserdata/
-iosApp/*.xcodeproj/xcuserdata/
+mobile/iosApp/Pods/
+mobile/iosApp/*.xcworkspace/xcuserdata/
+mobile/iosApp/*.xcodeproj/xcuserdata/
 *.xcuserstate
 DerivedData/
 

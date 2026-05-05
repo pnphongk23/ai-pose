@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { blobToUrl } from '@/lib/db';
 
 const ACCENT_COLORS = [
@@ -12,15 +12,13 @@ const ACCENT_COLORS = [
 ];
 
 export default function PhotoCard({ photo, onClick, onToggleFavorite }) {
-  const [imgUrl, setImgUrl] = useState(null);
+  const imgUrl = useMemo(() => photo.imageBlob ? blobToUrl(photo.imageBlob) : null, [photo.imageBlob]);
 
   useEffect(() => {
-    if (photo.imageBlob) {
-      const url = blobToUrl(photo.imageBlob);
-      setImgUrl(url);
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [photo.imageBlob]);
+    return () => {
+      if (imgUrl) URL.revokeObjectURL(imgUrl);
+    };
+  }, [imgUrl]);
 
   const accentColor = ACCENT_COLORS[photo.id % ACCENT_COLORS.length];
   const time = new Date(photo.createdAt).toLocaleTimeString('en-US', {
