@@ -3,6 +3,7 @@ import { createApp } from "./app";
 import { getEnv } from "./config/env";
 import { createDatabase } from "./db/connection";
 import { CommunityStore } from "./db/communityStore";
+import { ExtractionJobStore } from "./db/extractionJobStore";
 import { GeminiService } from "./services/geminiService";
 import { KeyPoolManager } from "./services/keyPoolManager";
 import { KeyStore } from "./services/keyStore";
@@ -12,6 +13,7 @@ const env = getEnv();
 const db = createDatabase(env.DATABASE_PATH);
 const keyStore = new KeyStore(db);
 const communityStore = new CommunityStore(db);
+const extractionJobStore = new ExtractionJobStore(db);
 const keyPoolManager = new KeyPoolManager(keyStore);
 const geminiService = new GeminiService();
 const appVersion = process.env.APP_VERSION ?? process.env.npm_package_version ?? "1.0.0";
@@ -25,6 +27,7 @@ const app = createApp({
   extractRateLimitMaxRequests: env.RATE_LIMIT_MAX,
   communityStore,
   communityUploadDir: env.COMMUNITY_UPLOAD_DIR,
+  extractionJobStore,
 });
 const SHUTDOWN_TIMEOUT_MS = 10_000;
 let shuttingDown = false;

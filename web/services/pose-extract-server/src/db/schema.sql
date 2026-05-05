@@ -45,3 +45,23 @@ CREATE TABLE IF NOT EXISTS community_poses (
 
 CREATE INDEX IF NOT EXISTS idx_community_poses_status ON community_poses(status);
 CREATE INDEX IF NOT EXISTS idx_community_poses_difficulty ON community_poses(difficulty);
+
+CREATE TABLE IF NOT EXISTS extraction_jobs (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK(status IN ('queued','processing','succeeded','failed')),
+  source_image_base64 TEXT NOT NULL,
+  source_mime_type TEXT NOT NULL,
+  result_image_base64 TEXT,
+  result_mime_type TEXT,
+  error_code TEXT,
+  error_message TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 3,
+  locked_at DATETIME,
+  lock_token TEXT,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_extraction_jobs_status_created_at ON extraction_jobs(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_extraction_jobs_locked_at ON extraction_jobs(locked_at);

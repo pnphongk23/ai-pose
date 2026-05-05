@@ -6,6 +6,8 @@ import { createAdminRoutes } from "./routes/adminRoutes";
 import { createExtractPoseRoutes } from "./routes/extractPoseRoutes";
 import { createCommunityRoutes } from "./routes/communityRoutes";
 import { createAdminCommunityRoutes } from "./routes/adminCommunityRoutes";
+import { createJobStatusRoutes } from "./routes/jobStatusRoutes";
+import type { ExtractionJobStore } from "./db/extractionJobStore";
 import { createUploadUrl, objectExists } from "./services/r2Storage";
 import { AppError } from "./services/errors";
 import type { KeyPoolManager } from "./services/keyPoolManager";
@@ -21,6 +23,17 @@ interface GeminiServiceLike {
   }): Promise<{ imageBase64: string; mimeType: "image/png" | "image/jpeg" | "image/webp" }>;
 }
 
+type ExtractPoseImage = (input: {
+  sourceImageBase64: string;
+  sourceMimeType: string;
+}) => Promise<{
+  imageBase64: string;
+  mimeType: "image/png" | "image/jpeg" | "image/webp";
+  processingTimeMs: number;
+  keyUsed?: string;
+  quotaRemaining?: string;
+}>;
+
 interface CreateAppOptions {
   version: string;
   startedAtMs?: number;
@@ -34,11 +47,44 @@ interface CreateAppOptions {
   extractRateLimitMaxRequests?: number;
   communityStore?: CommunityStore;
   communityUploadDir?: string;
+  extractionJobStore?: ExtractionJobStore;
+}
+
+export function createCommunityExtractPoseImage(options: CreateAppOptions): ExtractPoseImage | null {
+  if (!options.keyStore || !options.keyPoolManager || !options.geminiService) {
+    return null;
+  }
+
+  return async ({ sourceImageBase64, sourceMimeType }) => {
+    const processingStart = Date.now();
+    const key = await options.keyPoolManager!.getNextActiveKey();
+    const extracted = await options.geminiService!.extractPoseImage({
+      apiKey: key.apiKey,
+      sourceImageBase64,
+      sourceMimeType,
+    });
+
+    options.keyStore!.incrementRequestsToday(key.id);
+    const processingTimeMs = Date.now() - processingStart;
+    options.keyStore!.logRequest({
+      keyId: key.id,
+      processingTimeMs,
+      success: true,
+      errorCode: null,
+    });
+
+    return {
+      ...extracted,
+      processingTimeMs,
+      keyUsed: key.name,
+    };
+  };
 }
 
 export function createApp(options: CreateAppOptions): express.Express {
   const app = express();
   const startedAtMs = options.startedAtMs ?? Date.now();
+  const communityExtractPoseImage = createCommunityExtractPoseImage(options);
 
   // Railway sits behind at least one reverse proxy hop.
   app.set("trust proxy", 1);
@@ -96,7 +142,7 @@ export function createApp(options: CreateAppOptions): express.Express {
   }
 
   // Admin community routes
-  if (options.adminSecret && options.communityStore) {
+  if (options.adminSecret && options.communityStore && options.extractionJobStore) {
     app.use(
       "/api/admin/community/poses",
       createAdminCommunityRoutes({
@@ -105,8 +151,13 @@ export function createApp(options: CreateAppOptions): express.Express {
         r2PublicUrl: process.env.R2_PUBLIC_URL ?? "",
         createUploadUrl,
         objectExists,
+        jobStore: options.extractionJobStore,
       })
     );
+  }
+
+  if (options.adminSecret && options.extractionJobStore) {
+    app.use("/api/admin/jobs", createJobStatusRoutes({ adminSecret: options.adminSecret, jobStore: options.extractionJobStore }));
   }
 
   // Serve uploaded community images as static files

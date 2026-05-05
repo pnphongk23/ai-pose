@@ -4,7 +4,6 @@ builder = "dockerfile"
 [deploy]
 numReplicas = 1
 healthcheckPath = "/api/health"
-startCommand = "node dist/index.js"
 healthcheckTimeout = 30
 restartPolicyType = "on_failure"
 
